@@ -21,6 +21,23 @@
 
     </com.google.android.exoplayer2.ui.PlayerView>
 
+<!--    <fragment-->
+<!--        android:id="@+id/infoDisplay_frag"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent" />-->
+
+    <fragment
+        android:id="@+id/actionBtns_frag"
+        android:name="com.tatoeapps.timestopper.ActionButtonsFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/speedDisplay"
         android:layout_width="wrap_content"
@@ -33,60 +50,60 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/button1"
-        android:layout_width="50dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="1"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+<!--    <Button-->
+<!--        android:id="@+id/importVideo_btn"-->
+<!--        android:layout_width="50dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginStart="16dp"-->
+<!--        android:layout_marginBottom="16dp"-->
+<!--        android:text="1"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent" />-->
 
-    <Button
-        android:id="@+id/button2"
-        android:layout_width="50dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="+"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/button1" />
+<!--    <Button-->
+<!--        android:id="@+id/addSpeed_btn"-->
+<!--        android:layout_width="50dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="16dp"-->
+<!--        android:text="+"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintStart_toEndOf="@+id/importVideo_btn" />-->
 
-    <Button
-        android:id="@+id/button3"
-        android:layout_width="50dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="-"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/button2" />
+<!--    <Button-->
+<!--        android:id="@+id/minusSpeed_btn"-->
+<!--        android:layout_width="50dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="16dp"-->
+<!--        android:text="-"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintStart_toEndOf="@+id/addSpeed_btn" />-->
 
-    <Button
-        android:id="@+id/startTiming"
-        android:layout_width="64dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="STA"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/button3" />
+<!--    <Button-->
+<!--        android:id="@+id/startTiming_btn"-->
+<!--        android:layout_width="64dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="16dp"-->
+<!--        android:text="STA"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintStart_toEndOf="@+id/minusSpeed_btn" />-->
 
-    <Button
-        android:id="@+id/lapTiming"
-        android:layout_width="50dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="LAP"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/startTiming" />
+<!--    <Button-->
+<!--        android:id="@+id/lapTiming_btn"-->
+<!--        android:layout_width="50dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="16dp"-->
+<!--        android:text="LAP"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintStart_toEndOf="@+id/startTiming_btn" />-->
 
-    <Button
-        android:id="@+id/stopTiming"
-        android:layout_width="50dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="stop"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/lapTiming" />
+<!--    <Button-->
+<!--        android:id="@+id/stopTiming_btn"-->
+<!--        android:layout_width="50dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="16dp"-->
+<!--        android:text="stop"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintStart_toEndOf="@+id/lapTiming_btn" />-->
 
     <TextView
         android:id="@+id/timePointsDisplay"

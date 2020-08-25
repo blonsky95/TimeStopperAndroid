@@ -9,6 +9,7 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProviders
 import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -22,12 +23,14 @@ import kotlinx.android.synthetic.main.activity_main.*
 import timber.log.Timber
 import java.text.DecimalFormat
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ActionButtonsInterface {
+
+//    lateinit var mainViewModel: MainViewModel
 
     lateinit var exoPlayer: SimpleExoPlayer
     lateinit var playerView: PlayerView
-    lateinit var upSpeed: Button
-    lateinit var downSpeed: Button
+
+    lateinit var actionButtonsFragment: ActionButtonsFragment
 
     lateinit var dataSourceFactory: com.google.android.exoplayer2.upstream.DataSource.Factory
 
@@ -52,10 +55,39 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(layout.activity_main)
 
-        //todo clean up code
+        Timber.plant(Timber.DebugTree())
+
         //todo do fragments
         //todo look at customized mediaviewcontroller - read exoplayer stuff
+        //todo change speed with slider
+        checkPermissions()
 
+        setUpFullScreen()
+
+        setUpPlayer()
+
+        setButtonActions()
+
+        updateSpeedText()
+//        mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+    }
+
+    private fun updateSpeedText() {
+        speedDisplay.text = df.format(speedFactor)
+    }
+
+    private fun setUpPlayer() {
+        exoPlayer = SimpleExoPlayer.Builder(this).build()
+        exoPlayer.addListener(playerStateListener)
+
+        playerView = findViewById(id.playerView)
+        playerView.player = exoPlayer
+
+        dataSourceFactory =
+            DefaultDataSourceFactory(this, Util.getUserAgent(this, application.packageName))
+    }
+
+    private fun setUpFullScreen() {
         window.decorView.setOnSystemUiVisibilityChangeListener { visibility ->
             // Note that system bars will only be "visible" if none of the
             // LOW_PROFILE, HIDE_NAVIGATION, or FULLSCREEN flags are set.
@@ -73,85 +105,67 @@ class MainActivity : AppCompatActivity() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE or
                 View.SYSTEM_UI_FLAG_FULLSCREEN or
                 View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+    }
 
-        Timber.plant(Timber.DebugTree())
+    private fun setButtonActions() {
 
-        checkPermissions()
+        actionButtonsFragment =
+            supportFragmentManager.findFragmentById(R.id.actionBtns_frag) as ActionButtonsFragment
+        val fragTransaction = supportFragmentManager.beginTransaction()
+        fragTransaction.setCustomAnimations(
+            R.anim.slide_in_up,
+            R.anim.slide_in_down,
+            R.anim.slide_in_up,
+            R.anim.slide_in_down
+        )
+        //todo handle hiding and showing
+    }
 
-        exoPlayer = SimpleExoPlayer.Builder(this).build()
-        exoPlayer.addListener(playerStateListener)
 
+    override fun addSpeed() {
+changeSpeed(0.1F)
+    }
 
-        playerView = findViewById(id.playerView)
-        playerView.player = exoPlayer
+    override fun importVideo() {
+        intentPickMedia()
+    }
 
-        dataSourceFactory =
-            DefaultDataSourceFactory(this, Util.getUserAgent(this, application.packageName))
+    //    private fun stopTiming() {
+    override fun minusSpeed() {
+        changeSpeed(-0.1F)
+    }
 
-        speedDisplay.text = speedFactor.toString()
+    override fun startTiming() {
+        initialPositionInMillis = exoPlayer.currentPosition
+        updateTheTimeSpeedMatrix(true)
+        updateLapsText(true)
+        isTiming = true
+    }
 
-        val selectVideo = findViewById<Button>(id.button1)
-        upSpeed = findViewById<Button>(id.button2)
-        downSpeed = findViewById<Button>(id.button3)
-
-        selectVideo.setOnClickListener {
-            intentPickMedia()
-        }
-
-        upSpeed.setOnClickListener {
-            changeSpeed(+0.1F)
-        }
-
-        downSpeed.setOnClickListener {
-            changeSpeed(-0.1F)
-        }
-
-        startTiming.setOnClickListener {
-            //start timing
-            Timber.d("CONTROL - start pressed")
-
-            initialPositionInMillis = exoPlayer.currentPosition
-            updateTheTimeSpeedMatrix(true)
-            updateLapsText(true)
-            isTiming = true
-        }
-
-        lapTiming.setOnClickListener {
-            //lap
-            Timber.d("CONTROL - lap pressed - isTiming: $isTiming")
-            Timber.d("TEST - player current position: ${exoPlayer.currentPosition}")
-            if (isTiming) {
-                updateTheTimeSpeedMatrix()
-                updateLapsText()
-            }
-
-        }
-
-        stopTiming.setOnClickListener {
-            //stop timing
-            Timber.d("CONTROL - stop pressed - isTiming: $isTiming")
-
-            if (isTiming) {
-                updateTheTimeSpeedMatrix()
-                updateLapsText()
-                isTiming = false
-            }
+    override fun lapTiming() {
+        Timber.d("CONTROL - lap pressed - isTiming: $isTiming")
+        Timber.d("TEST - player current position: ${exoPlayer.currentPosition}")
+        if (isTiming) {
+            updateTheTimeSpeedMatrix()
+            updateLapsText()
         }
     }
+
+    override fun stopTiming() {
+        if (isTiming) {
+            updateTheTimeSpeedMatrix()
+            updateLapsText()
+            isTiming = false
+        }
+    }
+
 
     private fun updateTheTimeSpeedMatrix(resetMatrix: Boolean = false) {
         Timber.d("CONTROL - matrix being updated - reset:$resetMatrix")
 
-        //todo use current position in bar
-
         if (resetMatrix) {
             theTimeSpeedMatrixLog.clear()
         } else {
-//            var timeSinceLastUpdate = initialTimeInMillis
-//            if (theTimeSpeedMatrixLog.isNotEmpty()) {
-//                timeSinceLastUpdate=theTimeSpeedMatrixLog[theTimeSpeedMatrixLog.size-1].first.toLong()
-//            }
-//            val currentSystemTime = System.currentTimeMillis()
             val pair = Pair(exoPlayer.currentPosition, speedFactor)
             theTimeSpeedMatrixLog.add(pair)
             Timber.d("CONTROL - matrix updated - time added: ${pair.first} - speed added: ${pair.second}")
@@ -165,7 +179,8 @@ class MainActivity : AppCompatActivity() {
             realTimeInSecs = 0f
             lapsTimeStringDisplay = df.format(realTimeInSecs)
         } else {
-            val realElapsedTime = getRealTimeFromMatrixInSeconds()
+            val realElapsedTime =
+                Utils.getRealTimeFromMatrixInSeconds(theTimeSpeedMatrixLog, initialPositionInMillis)
             lapsTimeStringDisplay += "\n${df.format(realElapsedTime)}"
             Timber.d("CONTROL - lapText updated - new time:$realElapsedTime")
 
@@ -173,29 +188,18 @@ class MainActivity : AppCompatActivity() {
         timePointsDisplay.text = lapsTimeStringDisplay
     }
 
-    private fun getRealTimeFromMatrixInSeconds(): Double {
-        var total = 0L
-        var iTime = initialPositionInMillis
-        for (pair in theTimeSpeedMatrixLog) {
-            val fTime = pair.first
-            val speedFactor = pair.second
-            total += ((fTime - iTime)).toLong()
-            iTime = pair.first
-        }
-        Timber.d("CONTROL - getting real time from matrix - total:$total")
-
-        return total.toDouble() / 1000
-    }
 
     private fun changeSpeed(deltaSpeed: Float) {
-        if (isTiming) {
-            updateTheTimeSpeedMatrix()
-        }
-        speedFactor += deltaSpeed
-        val playbackParameters = PlaybackParameters(speedFactor)
-        exoPlayer.setPlaybackParameters(playbackParameters)
+        if (speedFactor+deltaSpeed>0) {
+            if (isTiming) {
+                updateTheTimeSpeedMatrix()
+            }
+            speedFactor += deltaSpeed
+            val playbackParameters = PlaybackParameters(speedFactor)
+            exoPlayer.setPlaybackParameters(playbackParameters)
 
-        speedDisplay.text = df.format(speedFactor)
+            updateSpeedText()
+        }
         //todo do slider for speed
     }
 
