@@ -4,24 +4,29 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.MediaStore
+import android.transition.Slide
+import android.transition.Transition
+import android.transition.TransitionManager
+import android.view.Gravity
 import android.view.View
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProviders
 import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.ui.PlayerControlView
 import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import com.tatoeapps.timestopper.R.id
 import com.tatoeapps.timestopper.R.layout
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.view.*
 import timber.log.Timber
 import java.text.DecimalFormat
+
 
 class MainActivity : AppCompatActivity(), ActionButtonsInterface {
 
@@ -29,6 +34,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
 
     lateinit var exoPlayer: SimpleExoPlayer
     lateinit var playerView: PlayerView
+//    lateinit var playerControlView: PlayerControlView
 
     lateinit var actionButtonsFragment: ActionButtonsFragment
 
@@ -57,7 +63,6 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
 
         Timber.plant(Timber.DebugTree())
 
-        //todo do fragments
         //todo look at customized mediaviewcontroller - read exoplayer stuff
         //todo change speed with slider
         checkPermissions()
@@ -66,14 +71,83 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
 
         setUpPlayer()
 
-        setButtonActions()
+        setTouchListener()
 
-        updateSpeedText()
-//        mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+        updateSpeedText("-") //no video
+//        updateInfoDisplay(isTiming)
     }
 
-    private fun updateSpeedText() {
-        speedDisplay.text = df.format(speedFactor)
+    override fun onPause() {
+        if (exoPlayer!=null&&exoPlayer.isPlaying){
+            exoPlayer.stop()
+            exoPlayer.release()
+        }
+        super.onPause()
+    }
+
+    private fun setTouchListener() {
+        playerView.setOnClickListener {
+            val show = (supportFragmentManager.findFragmentById(R.id.actionBtns_frag) as ActionButtonsFragment).isHidden
+            toggleActionButtonsFragment(show)
+            toggleInfoDisplay(info_container, show)
+//            if (isTiming) {
+//                toggleInfoDisplay(timePointsDisplay, show)
+//            }
+        }
+    }
+
+    private fun toggleInfoDisplay(view: View, show: Boolean) {
+        val transition: Transition = Slide(Gravity.START)
+        transition.duration = 400
+        transition.addTarget(view)
+        TransitionManager.beginDelayedTransition(parent_container, transition)
+        view.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    private fun toggleActionButtonsFragment(show: Boolean) {
+        actionButtonsFragment =
+            supportFragmentManager.findFragmentById(R.id.actionBtns_frag) as ActionButtonsFragment
+        val fragTransaction = supportFragmentManager.beginTransaction()
+        fragTransaction.setCustomAnimations(
+            R.anim.slide_right_to_left,
+            R.anim.slide_left_to_right,
+            R.anim.slide_right_to_left,
+            R.anim.slide_left_to_right
+        )
+        if (show) {
+            fragTransaction.show(actionButtonsFragment).commit()
+        } else {
+            fragTransaction.hide(actionButtonsFragment).commit()
+        }
+    }
+
+    private fun updateInfoDisplay(isVisible: Boolean) {
+        if (isVisible) {
+            timePointsDisplay.visibility = View.VISIBLE
+        } else {
+            timePointsDisplay.visibility = View.GONE
+        }
+    }
+
+    private fun updateSpeedText(speedText: String) {
+        val speedString = "Video speed: $speedText"
+        speedDisplay.text = speedString
+    }
+
+    private fun updateLapsText(resetCounter: Boolean = false) {
+        Timber.d("CONTROL - lapText being updated - reset:$resetCounter")
+
+        if (resetCounter) {
+            realTimeInSecs = 0f
+            lapsTimeStringDisplay = df.format(realTimeInSecs)
+        } else {
+            val realElapsedTime =
+                Utils.getRealTimeFromMatrixInSeconds(theTimeSpeedMatrixLog, initialPositionInMillis)
+            lapsTimeStringDisplay += "\n${df.format(realElapsedTime)}"
+            Timber.d("CONTROL - lapText updated - new time:$realElapsedTime")
+
+        }
+        timePointsDisplay.text = lapsTimeStringDisplay
     }
 
     private fun setUpPlayer() {
@@ -81,7 +155,10 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
         exoPlayer.addListener(playerStateListener)
 
         playerView = findViewById(id.playerView)
+//        playerView.playerControlView
+        
         playerView.player = exoPlayer
+
 
         dataSourceFactory =
             DefaultDataSourceFactory(this, Util.getUserAgent(this, application.packageName))
@@ -107,23 +184,8 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
                 View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
     }
 
-    private fun setButtonActions() {
-
-        actionButtonsFragment =
-            supportFragmentManager.findFragmentById(R.id.actionBtns_frag) as ActionButtonsFragment
-        val fragTransaction = supportFragmentManager.beginTransaction()
-        fragTransaction.setCustomAnimations(
-            R.anim.slide_in_up,
-            R.anim.slide_in_down,
-            R.anim.slide_in_up,
-            R.anim.slide_in_down
-        )
-        //todo handle hiding and showing
-    }
-
-
     override fun addSpeed() {
-changeSpeed(0.1F)
+        changeSpeed(0.1F)
     }
 
     override fun importVideo() {
@@ -136,10 +198,13 @@ changeSpeed(0.1F)
     }
 
     override fun startTiming() {
+        isTiming = true
+//        toggleInfoDisplay(timePointsDisplay, isTiming)
+//
+        updateInfoDisplay(isTiming)
         initialPositionInMillis = exoPlayer.currentPosition
         updateTheTimeSpeedMatrix(true)
         updateLapsText(true)
-        isTiming = true
     }
 
     override fun lapTiming() {
@@ -172,25 +237,8 @@ changeSpeed(0.1F)
         }
     }
 
-    private fun updateLapsText(resetCounter: Boolean = false) {
-        Timber.d("CONTROL - lapText being updated - reset:$resetCounter")
-
-        if (resetCounter) {
-            realTimeInSecs = 0f
-            lapsTimeStringDisplay = df.format(realTimeInSecs)
-        } else {
-            val realElapsedTime =
-                Utils.getRealTimeFromMatrixInSeconds(theTimeSpeedMatrixLog, initialPositionInMillis)
-            lapsTimeStringDisplay += "\n${df.format(realElapsedTime)}"
-            Timber.d("CONTROL - lapText updated - new time:$realElapsedTime")
-
-        }
-        timePointsDisplay.text = lapsTimeStringDisplay
-    }
-
-
     private fun changeSpeed(deltaSpeed: Float) {
-        if (speedFactor+deltaSpeed>0) {
+        if (speedFactor + deltaSpeed > 0) {
             if (isTiming) {
                 updateTheTimeSpeedMatrix()
             }
@@ -198,7 +246,7 @@ changeSpeed(0.1F)
             val playbackParameters = PlaybackParameters(speedFactor)
             exoPlayer.setPlaybackParameters(playbackParameters)
 
-            updateSpeedText()
+            updateSpeedText(df.format(speedFactor))
         }
         //todo do slider for speed
     }
@@ -224,6 +272,8 @@ changeSpeed(0.1F)
                 .createMediaSource(selectedMediaUri)
             exoPlayer.prepare(videoSource)
             hasVideo = true
+            updateSpeedText(df.format(speedFactor)) //no video
+
         }
         super.onActivityResult(requestCode, resultCode, data)
     }

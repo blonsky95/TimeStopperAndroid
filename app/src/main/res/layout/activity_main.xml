@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/parent_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
@@ -16,18 +17,21 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" >
+        app:layout_constraintVertical_bias="0.0"
+        app:surface_type="surface_view"
+        app:show_buffering="never"
+        app:time_bar_min_update_interval="5"
+        app:controller_layout_id="@layout/exo_player_control_view"
+        app:show_timeout="0">
 
+<!--        <com.google.android.exoplayer2.ui.PlayerControlView-->
+<!--            android:id="@+id/playerControlView"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="top"/>-->
 
     </com.google.android.exoplayer2.ui.PlayerView>
 
-<!--    <fragment-->
-<!--        android:id="@+id/infoDisplay_frag"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent" />-->
 
     <fragment
         android:id="@+id/actionBtns_frag"
@@ -38,81 +42,40 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/speedDisplay"
+    <LinearLayout
+        android:id="@+id/info_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:text="TextView"
-        android:textColor="#FFFFFF"
-        android:background="#80808080"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="vertical"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-<!--    <Button-->
-<!--        android:id="@+id/importVideo_btn"-->
-<!--        android:layout_width="50dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginStart="16dp"-->
-<!--        android:layout_marginBottom="16dp"-->
-<!--        android:text="1"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent" />-->
+        <TextView
+            android:id="@+id/speedDisplay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/rounded_background"
+            android:padding="4dp"
+            android:text="TextView"
+            android:textColor="#FFFFFF" />
 
-<!--    <Button-->
-<!--        android:id="@+id/addSpeed_btn"-->
-<!--        android:layout_width="50dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginBottom="16dp"-->
-<!--        android:text="+"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintStart_toEndOf="@+id/importVideo_btn" />-->
+        <TextView
+            android:id="@+id/timePointsDisplay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_background"
+            android:padding="4dp"
+            android:text="TextView"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/speedDisplay" />
 
-<!--    <Button-->
-<!--        android:id="@+id/minusSpeed_btn"-->
-<!--        android:layout_width="50dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginBottom="16dp"-->
-<!--        android:text="-"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintStart_toEndOf="@+id/addSpeed_btn" />-->
+    </LinearLayout>
 
-<!--    <Button-->
-<!--        android:id="@+id/startTiming_btn"-->
-<!--        android:layout_width="64dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginBottom="16dp"-->
-<!--        android:text="STA"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintStart_toEndOf="@+id/minusSpeed_btn" />-->
 
-<!--    <Button-->
-<!--        android:id="@+id/lapTiming_btn"-->
-<!--        android:layout_width="50dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginBottom="16dp"-->
-<!--        android:text="LAP"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintStart_toEndOf="@+id/startTiming_btn" />-->
-
-<!--    <Button-->
-<!--        android:id="@+id/stopTiming_btn"-->
-<!--        android:layout_width="50dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginBottom="16dp"-->
-<!--        android:text="stop"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintStart_toEndOf="@+id/lapTiming_btn" />-->
-
-    <TextView
-        android:id="@+id/timePointsDisplay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textColor="#FFFFFF"
-        android:background="#80808080"
-        android:text="TextView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/speedDisplay" />
 </androidx.constraintlayout.widget.ConstraintLayout>
