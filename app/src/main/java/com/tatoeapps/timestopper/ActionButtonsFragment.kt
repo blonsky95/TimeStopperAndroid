@@ -25,12 +25,12 @@ class ActionButtonsFragment : Fragment() {
         view.addVideo_btn.setOnClickListener {
             actionButtonsInterface.importVideo()
         }
-        view.speedUp_btn.setOnClickListener {
-            actionButtonsInterface.addSpeed()
-        }
-        view.speedDown_btn.setOnClickListener {
-            actionButtonsInterface.minusSpeed()
-        }
+//        view.speedUp_btn.setOnClickListener {
+//            actionButtonsInterface.addSpeed()
+//        }
+//        view.speedDown_btn.setOnClickListener {
+//            actionButtonsInterface.minusSpeed()
+//        }
         view.start_btn.setOnClickListener {
             actionButtonsInterface.startTiming()
         }

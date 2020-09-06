@@ -9,7 +9,7 @@
 
     <ImageView
         android:id="@+id/addVideo_btn"
-        android:layout_width="match_parent"
+        android:layout_width="52dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:paddingTop="12dp"
@@ -19,29 +19,29 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/video_icon" />
 
-    <TextView
-        android:id="@+id/speedUp_btn"
-        android:layout_width="52dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        android:textColor="#FFFFFF"
-        android:text="+"
-        android:textSize="16sp" />
+<!--    <TextView-->
+<!--        android:id="@+id/speedUp_btn"-->
+<!--        android:layout_width="52dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:gravity="center"-->
+<!--        android:paddingTop="12dp"-->
+<!--        android:paddingBottom="12dp"-->
+<!--        android:textColor="#FFFFFF"-->
+<!--        android:text="+"-->
+<!--        android:textSize="16sp" />-->
 
-    <TextView
-        android:id="@+id/speedDown_btn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:textColor="#FFFFFF"
-        android:gravity="center"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        android:text="-"
-        android:textSize="16sp" />
+<!--    <TextView-->
+<!--        android:id="@+id/speedDown_btn"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:textColor="#FFFFFF"-->
+<!--        android:gravity="center"-->
+<!--        android:paddingTop="12dp"-->
+<!--        android:paddingBottom="12dp"-->
+<!--        android:text="-"-->
+<!--        android:textSize="16sp" />-->
 
     <TextView
         android:id="@+id/start_btn"

@@ -3,6 +3,14 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
+    signingConfigs {
+        release {
+            storeFile file('D:\\Apps_projects\\TimeStopper\\TimeStopper\\keystore_timestopper.jks')
+            storePassword 'blonsky95'
+            keyAlias 'key0'
+            keyPassword 'blonsky95'
+        }
+    }
     compileSdkVersion 29
 
     compileOptions {
@@ -29,6 +37,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation 'com.google.android.material:material:1.3.0-alpha02'
     implementation 'com.google.android.exoplayer:exoplayer:2.11.7'
     implementation 'com.jakewharton.timber:timber:4.7.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"

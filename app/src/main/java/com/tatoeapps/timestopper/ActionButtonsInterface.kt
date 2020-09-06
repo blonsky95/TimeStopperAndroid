@@ -5,14 +5,6 @@ interface ActionButtonsInterface {
 
     }
 
-    fun addSpeed() {
-
-    }
-
-    fun minusSpeed() {
-
-    }
-
     fun startTiming() {
 
     }

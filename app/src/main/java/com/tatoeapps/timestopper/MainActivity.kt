@@ -12,32 +12,25 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.ui.PlayerControlView
 import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import com.tatoeapps.timestopper.R.id
 import com.tatoeapps.timestopper.R.layout
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_main.view.*
 import timber.log.Timber
 import java.text.DecimalFormat
 
 
-class MainActivity : AppCompatActivity(), ActionButtonsInterface {
-
-//    lateinit var mainViewModel: MainViewModel
+class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInterface {
 
     lateinit var exoPlayer: SimpleExoPlayer
     lateinit var playerView: PlayerView
-//    lateinit var playerControlView: PlayerControlView
-
-    lateinit var actionButtonsFragment: ActionButtonsFragment
-
     lateinit var dataSourceFactory: com.google.android.exoplayer2.upstream.DataSource.Factory
 
     private var hasPermissions = false
@@ -64,7 +57,6 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
         Timber.plant(Timber.DebugTree())
 
         //todo look at customized mediaviewcontroller - read exoplayer stuff
-        //todo change speed with slider
         checkPermissions()
 
         setUpFullScreen()
@@ -72,13 +64,10 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
         setUpPlayer()
 
         setTouchListener()
-
-        updateSpeedText("-") //no video
-//        updateInfoDisplay(isTiming)
     }
 
     override fun onPause() {
-        if (exoPlayer!=null&&exoPlayer.isPlaying){
+        if (exoPlayer != null && exoPlayer.isPlaying) {
             exoPlayer.stop()
             exoPlayer.release()
         }
@@ -87,12 +76,18 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
 
     private fun setTouchListener() {
         playerView.setOnClickListener {
-            val show = (supportFragmentManager.findFragmentById(R.id.actionBtns_frag) as ActionButtonsFragment).isHidden
-            toggleActionButtonsFragment(show)
+            val show =
+                (supportFragmentManager.findFragmentById(R.id.actionBtns_frag) as ActionButtonsFragment).isHidden
+
+            toggleFragmentsVisibility(
+                show,
+                supportFragmentManager.findFragmentById(R.id.actionBtns_frag) as ActionButtonsFragment
+            )
+            toggleFragmentsVisibility(
+                show,
+                supportFragmentManager.findFragmentById(R.id.speedSlider_frag) as SpeedSliderFragment
+            )
             toggleInfoDisplay(info_container, show)
-//            if (isTiming) {
-//                toggleInfoDisplay(timePointsDisplay, show)
-//            }
         }
     }
 
@@ -104,20 +99,29 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
         view.visibility = if (show) View.VISIBLE else View.GONE
     }
 
-    private fun toggleActionButtonsFragment(show: Boolean) {
-        actionButtonsFragment =
-            supportFragmentManager.findFragmentById(R.id.actionBtns_frag) as ActionButtonsFragment
+    private fun toggleFragmentsVisibility(show: Boolean, fragment: Fragment) {
+
         val fragTransaction = supportFragmentManager.beginTransaction()
-        fragTransaction.setCustomAnimations(
-            R.anim.slide_right_to_left,
-            R.anim.slide_left_to_right,
-            R.anim.slide_right_to_left,
-            R.anim.slide_left_to_right
-        )
-        if (show) {
-            fragTransaction.show(actionButtonsFragment).commit()
+        if (fragment is ActionButtonsFragment) {
+            fragTransaction.setCustomAnimations(
+                R.anim.slide_right_to_left,
+                R.anim.slide_left_to_right,
+                R.anim.slide_right_to_left,
+                R.anim.slide_left_to_right
+            )
         } else {
-            fragTransaction.hide(actionButtonsFragment).commit()
+            fragTransaction.setCustomAnimations(
+                R.anim.slide_down_to_up,
+                R.anim.slide_up_to_down,
+                R.anim.slide_down_to_up,
+                R.anim.slide_up_to_down
+            )
+        }
+
+        if (show) {
+            fragTransaction.show(fragment).commit()
+        } else {
+            fragTransaction.hide(fragment).commit()
         }
     }
 
@@ -127,11 +131,6 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
         } else {
             timePointsDisplay.visibility = View.GONE
         }
-    }
-
-    private fun updateSpeedText(speedText: String) {
-        val speedString = "Video speed: $speedText"
-        speedDisplay.text = speedString
     }
 
     private fun updateLapsText(resetCounter: Boolean = false) {
@@ -155,10 +154,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
         exoPlayer.addListener(playerStateListener)
 
         playerView = findViewById(id.playerView)
-//        playerView.playerControlView
-        
         playerView.player = exoPlayer
-
 
         dataSourceFactory =
             DefaultDataSourceFactory(this, Util.getUserAgent(this, application.packageName))
@@ -184,23 +180,16 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
                 View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
     }
 
-    override fun addSpeed() {
-        changeSpeed(0.1F)
+    override fun setSpeed(newValue: Float) {
+        changeSpeed(newValue/100)
     }
 
     override fun importVideo() {
         intentPickMedia()
     }
 
-    //    private fun stopTiming() {
-    override fun minusSpeed() {
-        changeSpeed(-0.1F)
-    }
-
     override fun startTiming() {
         isTiming = true
-//        toggleInfoDisplay(timePointsDisplay, isTiming)
-//
         updateInfoDisplay(isTiming)
         initialPositionInMillis = exoPlayer.currentPosition
         updateTheTimeSpeedMatrix(true)
@@ -237,18 +226,18 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
         }
     }
 
-    private fun changeSpeed(deltaSpeed: Float) {
-        if (speedFactor + deltaSpeed > 0) {
-            if (isTiming) {
-                updateTheTimeSpeedMatrix()
-            }
-            speedFactor += deltaSpeed
-            val playbackParameters = PlaybackParameters(speedFactor)
-            exoPlayer.setPlaybackParameters(playbackParameters)
-
-            updateSpeedText(df.format(speedFactor))
+    private fun changeSpeed(newSpeed: Float) {
+        if (isTiming) {
+            updateTheTimeSpeedMatrix()
         }
-        //todo do slider for speed
+        speedFactor = newSpeed
+        val playbackParameters = PlaybackParameters(speedFactor)
+//            exoPlayer.clearVideoDecoderOutputBufferRenderer()
+//            exoPlayer.stop()
+//            exoPlayer.playWhenReady=true
+        exoPlayer.setPlaybackParameters(playbackParameters)
+//            exoPlayer.clearVideoDecoderOutputBufferRenderer()
+
     }
 
     private fun intentPickMedia() {
@@ -272,8 +261,6 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface {
                 .createMediaSource(selectedMediaUri)
             exoPlayer.prepare(videoSource)
             hasVideo = true
-            updateSpeedText(df.format(speedFactor)) //no video
-
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
