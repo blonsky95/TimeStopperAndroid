@@ -19,6 +19,11 @@
         android:paddingTop="4dp"
         android:orientation="horizontal">
 
+        <ImageButton
+            android:id="@+id/custom_rewind"
+            android:src="@drawable/ic_baseline_fast_rewind_48"
+            style="@style/ExoMediaButton.Rewind"/>
+
         <ImageButton android:id="@id/exo_play"
             android:src="@drawable/ic_baseline_play_arrow_48"
             style="@style/ExoMediaButton.Play"/>
@@ -26,6 +31,11 @@
         <ImageButton android:id="@id/exo_pause"
             android:src="@drawable/ic_baseline_pause_48"
             style="@style/ExoMediaButton.Pause"/>
+
+        <ImageButton
+            android:id="@+id/custom_forward"
+            android:src="@drawable/ic_baseline_fast_forward_48"
+            style="@style/ExoMediaButton.FastForward" />
 
     </LinearLayout>
 

@@ -23,8 +23,10 @@ import com.google.android.exoplayer2.util.Util
 import com.tatoeapps.timestopper.R.id
 import com.tatoeapps.timestopper.R.layout
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.exo_player_control_view.*
 import timber.log.Timber
 import java.text.DecimalFormat
+import kotlin.math.ceil
 
 
 class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInterface {
@@ -56,7 +58,6 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
 
         Timber.plant(Timber.DebugTree())
 
-        //todo look at customized mediaviewcontroller - read exoplayer stuff
         checkPermissions()
 
         setUpFullScreen()
@@ -260,6 +261,15 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
             val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(selectedMediaUri)
             exoPlayer.prepare(videoSource)
+
+            val videoSkipDefaultMs = 5000
+            custom_forward.setOnClickListener {
+                exoPlayer.seekTo(exoPlayer.currentPosition+(videoSkipDefaultMs*speedFactor).toLong())
+            }
+            custom_rewind.setOnClickListener {
+                exoPlayer.seekTo(exoPlayer.currentPosition-(videoSkipDefaultMs*speedFactor).toLong())
+            }
+
             hasVideo = true
         }
         super.onActivityResult(requestCode, resultCode, data)
