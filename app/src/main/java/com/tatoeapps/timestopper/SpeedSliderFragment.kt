@@ -9,10 +9,17 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.slider.Slider
 import kotlinx.android.synthetic.main.fragment_action_btns.view.*
+import kotlinx.android.synthetic.main.fragment_speed_btns.*
 import kotlinx.android.synthetic.main.fragment_speed_btns.view.*
 import java.text.NumberFormat
 
 class SpeedSliderFragment : Fragment() {
+
+    companion object {
+        const val maxSpeedValue = 250.0f
+        const val minSpeedValue = 10.0f
+        const val intervalValue = 10.0f
+    }
 
     private lateinit var speedSliderInterface: SpeedSliderInterface
     override fun onCreateView(
@@ -28,7 +35,6 @@ class SpeedSliderFragment : Fragment() {
 
         view.speed_slider.setLabelFormatter { value: Float ->
             val format = NumberFormat.getInstance()
-//            format.maximumFractionDigits = 0
             format.format((value/100).toDouble())
         }
 
@@ -41,6 +47,21 @@ class SpeedSliderFragment : Fragment() {
                 speedSliderInterface.setSpeed(slider.value)
             }
         })
+
+        view.add_speed_btn.setOnClickListener {
+            if (speed_slider.value< maxSpeedValue) {
+                val newSpeed = speed_slider.value+ intervalValue
+                speed_slider.value=newSpeed
+                speedSliderInterface.setSpeed(newSpeed)
+            }
+        }
+        view.minus_speed_btn.setOnClickListener {
+            if (speed_slider.value> minSpeedValue) {
+                val newSpeed = speed_slider.value - intervalValue
+                speed_slider.value=newSpeed
+                speedSliderInterface.setSpeed(newSpeed)
+            }
+        }
     }
 
     override fun onAttach(context: Context) {
