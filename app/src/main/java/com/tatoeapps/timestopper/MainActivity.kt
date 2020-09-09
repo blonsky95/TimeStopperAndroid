@@ -2,6 +2,9 @@ package com.tatoeapps.timestopper
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.MediaExtractor
+import android.media.MediaFormat
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.transition.Slide
@@ -25,6 +28,7 @@ import com.tatoeapps.timestopper.R.layout
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.exo_player_control_view.*
 import timber.log.Timber
+import java.lang.Exception
 import java.text.DecimalFormat
 import kotlin.math.ceil
 
@@ -39,6 +43,9 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
     private val PERMISSION_REQUEST_CODE = 123
 
     private var hasVideo = false
+    private var isPlayingVideo = false
+    private var videoFrameRate = 30f
+//    private var videoDuration
 
     private var task: Runnable? = null
     private var speedFactor = 1.0f
@@ -182,7 +189,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
     }
 
     override fun setSpeed(newValue: Float) {
-        changeSpeed(newValue/100)
+        changeSpeed(newValue / 100)
     }
 
     override fun importVideo() {
@@ -256,23 +263,67 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
             window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE or
                     View.SYSTEM_UI_FLAG_FULLSCREEN or
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            val selectedMediaUri = data!!.data
 
-            val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(selectedMediaUri)
-            exoPlayer.prepare(videoSource)
+            prepareVideoSource(data!!.data!!)
+            getVideoFrameRate(data.data!!)
+            configurePlayerButtons()
 
-            val videoSkipDefaultMs = 5000
-            custom_forward.setOnClickListener {
-                exoPlayer.seekTo(exoPlayer.currentPosition+(videoSkipDefaultMs*speedFactor).toLong())
-            }
-            custom_rewind.setOnClickListener {
-                exoPlayer.seekTo(exoPlayer.currentPosition-(videoSkipDefaultMs*speedFactor).toLong())
-            }
 
-            hasVideo = true
         }
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun getVideoFrameRate(uri: Uri) {
+        val mediaExtractor = MediaExtractor()
+        try {
+            mediaExtractor.setDataSource(this,uri,null)
+            val numTracks = mediaExtractor.trackCount
+            for (i in 0 until numTracks) {
+                val mediaFormat = mediaExtractor.getTrackFormat(i)
+                val mime = mediaFormat.getString(MediaFormat.KEY_MIME)
+                if (mime!!.startsWith("video/")) {
+                    if (mediaFormat.containsKey(MediaFormat.KEY_FRAME_RATE)) {
+                        videoFrameRate = mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE).toFloat()
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Timber.d("Exception getting frame rate: $e")
+        } finally {
+            mediaExtractor.release()
+        }
+    }
+
+    private fun configurePlayerButtons() {
+        val videoSkipDefaultMs = 5000
+        custom_forward.setOnClickListener {
+            exoPlayer.seekTo(exoPlayer.currentPosition + (videoSkipDefaultMs * speedFactor).toLong())
+        }
+        custom_rewind.setOnClickListener {
+            exoPlayer.seekTo(exoPlayer.currentPosition - (videoSkipDefaultMs * speedFactor).toLong())
+        }
+
+        val frameJumpInMs = ceil(1000/videoFrameRate).toLong()
+
+        next_frame_btn.setOnClickListener {
+            if (!isPlayingVideo) {
+                exoPlayer.seekTo(exoPlayer.currentPosition +frameJumpInMs )
+            }
+        }
+        previous_frame_btn.setOnClickListener {
+            if (!isPlayingVideo) {
+                exoPlayer.seekTo(exoPlayer.currentPosition - frameJumpInMs)
+            }
+        }
+
+    }
+
+    private fun prepareVideoSource(selectedMediaUri: Uri) {
+        val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory)
+            .createMediaSource(selectedMediaUri)
+
+        exoPlayer.prepare(videoSource)
+        hasVideo = true
     }
 
     private val playerStateListener = object : Player.EventListener {
@@ -291,9 +342,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            if (isPlaying) {
-
-            }
+            isPlayingVideo=isPlaying
         }
     }
 

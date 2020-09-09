@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="bottom"
     android:layoutDirection="ltr"
-    android:background="#CC000000"
+    android:background="#75000000"
     android:orientation="vertical"
     android:layout_marginBottom="4dp"
     android:layout_marginStart="4dp"
@@ -18,6 +18,15 @@
         android:gravity="center"
         android:paddingTop="4dp"
         android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/previous_frame_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:textSize="16sp"
+            android:text="P. F."
+            android:textColor="#FFFFFF"/>
 
         <ImageButton
             android:id="@+id/custom_rewind"
@@ -36,6 +45,14 @@
             android:id="@+id/custom_forward"
             android:src="@drawable/ic_baseline_fast_forward_48"
             style="@style/ExoMediaButton.FastForward" />
+        <TextView
+            android:id="@+id/next_frame_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:textSize="16sp"
+            android:text="N. F."
+            android:textColor="#FFFFFF"/>
 
     </LinearLayout>
 
