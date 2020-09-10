@@ -12,6 +12,7 @@ import android.transition.Transition
 import android.transition.TransitionManager
 import android.view.Gravity
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -344,6 +345,18 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             isPlayingVideo=isPlaying
         }
+    }
+
+    override fun onBackPressed() {
+        val dialogBuilder = AlertDialog.Builder(this)
+            .setMessage("Are you sure you want to quit?")
+            .setPositiveButton(
+                "Yes"
+            ) { _, _ -> super.onBackPressed()}
+            .setNegativeButton("No",null)
+            .setCancelable(true)
+
+        dialogBuilder.show()
     }
 
     private fun checkPermissions() {
