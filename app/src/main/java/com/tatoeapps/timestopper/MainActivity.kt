@@ -283,7 +283,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
             prepareVideoSource(data!!.data!!)
             getVideoFrameRate(data.data!!)
             configurePlayerButtons()
-
+            updateInfoDisplay(false)
 
         }
         super.onActivityResult(requestCode, resultCode, data)
