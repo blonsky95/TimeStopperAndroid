@@ -46,7 +46,11 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
     private var hasVideo = false
     private var isPlayingVideo = false
     private var videoFrameRate = 30f
+    private var startTimelinePosition:Long = 0L
+
 //    private var videoDuration
+
+//    private var timeBetweenLaps = 0.0
 
     private var task: Runnable? = null
     private var speedFactor = 1.0f
@@ -59,6 +63,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
     private var lapsTimeStringDisplay = ""
 
     private var theTimeSpeedMatrixLog = arrayListOf<Pair<Long, Float>>()
+    private var timeIntervalMatrix = arrayListOf<Long>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -143,17 +148,15 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
     }
 
     private fun updateLapsText(resetCounter: Boolean = false) {
-        Timber.d("CONTROL - lapText being updated - reset:$resetCounter")
-
         if (resetCounter) {
             realTimeInSecs = 0f
             lapsTimeStringDisplay = df.format(realTimeInSecs)
         } else {
             val realElapsedTime =
                 Utils.getRealTimeFromMatrixInSeconds(theTimeSpeedMatrixLog, initialPositionInMillis)
-            lapsTimeStringDisplay += "\n${df.format(realElapsedTime)}"
-            Timber.d("CONTROL - lapText updated - new time:$realElapsedTime")
-
+            lapsTimeStringDisplay += "\n${df.format(realElapsedTime)} (${df.format(
+                (timeIntervalMatrix[timeIntervalMatrix.size - 1]-timeIntervalMatrix[timeIntervalMatrix.size - 2]).toDouble()/1000
+            )})"
         }
         timePointsDisplay.text = lapsTimeStringDisplay
     }
@@ -201,6 +204,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
         isTiming = true
         updateInfoDisplay(isTiming)
         initialPositionInMillis = exoPlayer.currentPosition
+        updateTimeIntervalMatrix(true)
         updateTheTimeSpeedMatrix(true)
         updateLapsText(true)
     }
@@ -209,6 +213,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
         Timber.d("CONTROL - lap pressed - isTiming: $isTiming")
         Timber.d("TEST - player current position: ${exoPlayer.currentPosition}")
         if (isTiming) {
+            updateTimeIntervalMatrix()
             updateTheTimeSpeedMatrix()
             updateLapsText()
         }
@@ -222,16 +227,26 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
         }
     }
 
+    override fun clearTiming() {
+        updateInfoDisplay(false)
+    }
+
 
     private fun updateTheTimeSpeedMatrix(resetMatrix: Boolean = false) {
-        Timber.d("CONTROL - matrix being updated - reset:$resetMatrix")
-
         if (resetMatrix) {
             theTimeSpeedMatrixLog.clear()
         } else {
-            val pair = Pair(exoPlayer.currentPosition, speedFactor)
+            val pair = Pair( exoPlayer.currentPosition, speedFactor)
             theTimeSpeedMatrixLog.add(pair)
-            Timber.d("CONTROL - matrix updated - time added: ${pair.first} - speed added: ${pair.second}")
+        }
+    }
+
+    private fun updateTimeIntervalMatrix(resetMatrix: Boolean = false) {
+        if (resetMatrix) {
+            timeIntervalMatrix.clear()
+            timeIntervalMatrix.add(0L)
+        } else {
+            timeIntervalMatrix.add(exoPlayer.currentPosition-initialPositionInMillis)
         }
     }
 
@@ -277,14 +292,15 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
     private fun getVideoFrameRate(uri: Uri) {
         val mediaExtractor = MediaExtractor()
         try {
-            mediaExtractor.setDataSource(this,uri,null)
+            mediaExtractor.setDataSource(this, uri, null)
             val numTracks = mediaExtractor.trackCount
             for (i in 0 until numTracks) {
                 val mediaFormat = mediaExtractor.getTrackFormat(i)
                 val mime = mediaFormat.getString(MediaFormat.KEY_MIME)
                 if (mime!!.startsWith("video/")) {
                     if (mediaFormat.containsKey(MediaFormat.KEY_FRAME_RATE)) {
-                        videoFrameRate = mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE).toFloat()
+                        videoFrameRate =
+                            mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE).toFloat()
                     }
                 }
             }
@@ -304,11 +320,11 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
             exoPlayer.seekTo(exoPlayer.currentPosition - (videoSkipDefaultMs * speedFactor).toLong())
         }
 
-        val frameJumpInMs = ceil(1000/videoFrameRate).toLong()
+        val frameJumpInMs = ceil(1000 / videoFrameRate).toLong()
 
         next_frame_btn.setOnClickListener {
             if (!isPlayingVideo) {
-                exoPlayer.seekTo(exoPlayer.currentPosition +frameJumpInMs )
+                exoPlayer.seekTo(exoPlayer.currentPosition + frameJumpInMs)
             }
         }
         previous_frame_btn.setOnClickListener {
@@ -343,7 +359,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            isPlayingVideo=isPlaying
+            isPlayingVideo = isPlaying
         }
     }
 
@@ -352,8 +368,8 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
             .setMessage("Are you sure you want to quit?")
             .setPositiveButton(
                 "Yes"
-            ) { _, _ -> super.onBackPressed()}
-            .setNegativeButton("No",null)
+            ) { _, _ -> super.onBackPressed() }
+            .setNegativeButton("No", null)
             .setCancelable(true)
 
         dialogBuilder.show()

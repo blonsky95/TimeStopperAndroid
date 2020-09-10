@@ -79,4 +79,16 @@
         android:text="Stop"
         android:textSize="14sp" />
 
+    <TextView
+        android:id="@+id/clear_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="#FFFFFF"
+        android:gravity="center"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:text="Clear"
+        android:textSize="14sp" />
+
 </LinearLayout>

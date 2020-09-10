@@ -40,6 +40,9 @@ class ActionButtonsFragment : Fragment() {
         view.stop_btn.setOnClickListener {
             actionButtonsInterface.stopTiming()
         }
+        view.clear_btn.setOnClickListener {
+            actionButtonsInterface.clearTiming()
+        }
 
 
     }

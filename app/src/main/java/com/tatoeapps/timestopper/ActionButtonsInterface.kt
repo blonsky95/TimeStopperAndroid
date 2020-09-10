@@ -16,4 +16,8 @@ interface ActionButtonsInterface {
     fun stopTiming() {
 
     }
+
+    fun clearTiming() {
+
+    }
 }
