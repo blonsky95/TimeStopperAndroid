@@ -7,21 +7,33 @@
     android:background="@drawable/rounded_background"
     android:orientation="horizontal">
 
-    <ImageView
+<!--    <ImageView-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:gravity="center"-->
+<!--        android:src="@drawable/ic_speed"-->
+<!--        android:layout_marginStart="8dp"-->
+<!--        android:textColor="#FFFFFF"-->
+<!--        android:textSize="16sp" />-->
+
+    <TextView
+        android:id="@+id/speed_value_display"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:src="@drawable/ic_speed"
+        android:text="1.0"
         android:layout_marginStart="8dp"
         android:textColor="#FFFFFF"
-        android:textSize="16sp" />
+        android:layout_gravity="center"
+        android:textSize="16sp"
+        android:gravity="center"/>
 
     <ImageView
         android:id="@+id/minus_speed_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:padding="3dp"
         android:gravity="center"
         android:src="@drawable/ic_baseline_remove_circle_outline_24"
         android:layout_marginStart="10dp"
@@ -49,6 +61,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
+        android:padding="3dp"
         android:layout_marginEnd="8dp"
         android:src="@drawable/ic_baseline_add_circle_outline_24"
         android:textColor="#FFFFFF"

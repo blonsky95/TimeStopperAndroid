@@ -27,7 +27,7 @@ class SpeedSliderFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return  inflater.inflate(R.layout.fragment_speed_btns, container, false)
+        return inflater.inflate(R.layout.fragment_speed_btns, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -35,7 +35,7 @@ class SpeedSliderFragment : Fragment() {
 
         view.speed_slider.setLabelFormatter { value: Float ->
             val format = NumberFormat.getInstance()
-            format.format((value/100).toDouble())
+            format.format((value / 100).toDouble())
         }
 
         view.speed_slider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
@@ -45,20 +45,26 @@ class SpeedSliderFragment : Fragment() {
 
             override fun onStopTrackingTouch(slider: Slider) {
                 speedSliderInterface.setSpeed(slider.value)
+                val speedString = (slider.value/100).toString()
+                speed_value_display.text = speedString
             }
         })
 
         view.add_speed_btn.setOnClickListener {
-            if (speed_slider.value< maxSpeedValue) {
-                val newSpeed = speed_slider.value+ intervalValue
-                speed_slider.value=newSpeed
+            if (speed_slider.value < maxSpeedValue) {
+                val newSpeed = speed_slider.value + intervalValue
+                speed_slider.value = newSpeed
+                val speedString = (newSpeed/100).toString()
+                speed_value_display.text = speedString
                 speedSliderInterface.setSpeed(newSpeed)
             }
         }
         view.minus_speed_btn.setOnClickListener {
-            if (speed_slider.value> minSpeedValue) {
+            if (speed_slider.value > minSpeedValue) {
                 val newSpeed = speed_slider.value - intervalValue
-                speed_slider.value=newSpeed
+                speed_slider.value = newSpeed
+                val speedString = (newSpeed/100).toString()
+                speed_value_display.text = speedString
                 speedSliderInterface.setSpeed(newSpeed)
             }
         }
