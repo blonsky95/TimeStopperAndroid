@@ -21,6 +21,7 @@ import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.ui.DefaultTimeBar
 import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
@@ -29,7 +30,6 @@ import com.tatoeapps.timestopper.R.layout
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.exo_player_control_view.*
 import timber.log.Timber
-import java.lang.Exception
 import java.text.DecimalFormat
 import kotlin.math.ceil
 
@@ -46,11 +46,6 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
     private var hasVideo = false
     private var isPlayingVideo = false
     private var videoFrameRate = 30f
-    private var startTimelinePosition:Long = 0L
-
-//    private var videoDuration
-
-//    private var timeBetweenLaps = 0.0
 
     private var task: Runnable? = null
     private var speedFactor = 1.0f
@@ -75,13 +70,24 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
 
         setUpFullScreen()
 
+        if (savedInstanceState == null) {
+            getStartFragment()
+        }
+
         setUpPlayer()
+
+        hideBuffering()
 
         setTouchListener()
     }
 
+    private fun getStartFragment() {
+        supportFragmentManager.beginTransaction()
+            .add(R.id.start_fragment_container, StartFragment()).commit()
+    }
+
     override fun onPause() {
-        if (exoPlayer != null && exoPlayer.isPlaying) {
+        if (exoPlayer.isPlaying) {
             exoPlayer.stop()
             exoPlayer.release()
         }
@@ -155,10 +161,16 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
             val realElapsedTime =
                 Utils.getRealTimeFromMatrixInSeconds(theTimeSpeedMatrixLog, initialPositionInMillis)
             lapsTimeStringDisplay += "\n${df.format(realElapsedTime)} (${df.format(
-                (timeIntervalMatrix[timeIntervalMatrix.size - 1]-timeIntervalMatrix[timeIntervalMatrix.size - 2]).toDouble()/1000
+                (timeIntervalMatrix[timeIntervalMatrix.size - 1] - timeIntervalMatrix[timeIntervalMatrix.size - 2]).toDouble() / 1000
             )})"
         }
         timePointsDisplay.text = lapsTimeStringDisplay
+    }
+
+    private fun hideBuffering() {
+        val timeBar: DefaultTimeBar =
+            playerView.findViewById<View>(id.exo_progress) as DefaultTimeBar
+        timeBar.setBufferedColor(0x33FFFFFF)
     }
 
     private fun setUpPlayer() {
@@ -236,7 +248,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
         if (resetMatrix) {
             theTimeSpeedMatrixLog.clear()
         } else {
-            val pair = Pair( exoPlayer.currentPosition, speedFactor)
+            val pair = Pair(exoPlayer.currentPosition, speedFactor)
             theTimeSpeedMatrixLog.add(pair)
         }
     }
@@ -246,7 +258,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
             timeIntervalMatrix.clear()
             timeIntervalMatrix.add(0L)
         } else {
-            timeIntervalMatrix.add(exoPlayer.currentPosition-initialPositionInMillis)
+            timeIntervalMatrix.add(exoPlayer.currentPosition - initialPositionInMillis)
         }
     }
 
@@ -276,6 +288,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == RESULT_OK) {
+            hideStartFragment()
             window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE or
                     View.SYSTEM_UI_FLAG_FULLSCREEN or
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
@@ -287,6 +300,11 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
 
         }
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun hideStartFragment() {
+        supportFragmentManager.beginTransaction()
+            .hide(supportFragmentManager.findFragmentById(R.id.start_fragment_container) as StartFragment).commitAllowingStateLoss()
     }
 
     private fun getVideoFrameRate(uri: Uri) {
@@ -324,11 +342,17 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
 
         next_frame_btn.setOnClickListener {
             if (!isPlayingVideo) {
+                Timber.d("Current position NF: ${exoPlayer.currentPosition}")
+                Timber.d("Buffered position NF: ${exoPlayer.bufferedPosition}")
+//                exoPlayer.clearVideoDecoderOutputBufferRenderer()
                 exoPlayer.seekTo(exoPlayer.currentPosition + frameJumpInMs)
             }
         }
         previous_frame_btn.setOnClickListener {
             if (!isPlayingVideo) {
+                Timber.d("Current position PF: ${exoPlayer.currentPosition}")
+                Timber.d("Buffered position PF: ${exoPlayer.bufferedPosition}")
+//                exoPlayer.clearVideoDecoderOutputBufferRenderer()
                 exoPlayer.seekTo(exoPlayer.currentPosition - frameJumpInMs)
             }
         }
