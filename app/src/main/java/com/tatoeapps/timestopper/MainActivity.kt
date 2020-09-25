@@ -17,13 +17,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.google.android.exoplayer2.PlaybackParameters
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.analytics.AnalyticsCollector
+import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.DefaultTimeBar
 import com.google.android.exoplayer2.ui.PlayerView
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.util.Clock
 import com.google.android.exoplayer2.util.Util
 import com.tatoeapps.timestopper.R.id
 import com.tatoeapps.timestopper.R.layout
@@ -32,6 +35,7 @@ import kotlinx.android.synthetic.main.exo_player_control_view.*
 import timber.log.Timber
 import java.text.DecimalFormat
 import kotlin.math.ceil
+import kotlin.math.floor
 
 
 class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInterface {
@@ -56,6 +60,8 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
     private var initialPositionInMillis: Long = 0
     private var isTiming = false
     private var lapsTimeStringDisplay = ""
+    private var firstTimeAfterPlay = true
+
 
     private var theTimeSpeedMatrixLog = arrayListOf<Pair<Long, Float>>()
     private var timeIntervalMatrix = arrayListOf<Long>()
@@ -174,8 +180,43 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
     }
 
     private fun setUpPlayer() {
-        exoPlayer = SimpleExoPlayer.Builder(this).build()
+
+        val defaultRenderersFactory = DefaultRenderersFactory(this).setEnableAudioTrackPlaybackParams(true)
+        exoPlayer = SimpleExoPlayer.Builder(this, defaultRenderersFactory).build()
+
+//        /* Instantiate a DefaultLoadControl.Builder. */
+//        val builder = DefaultLoadControl.Builder()
+//
+//        /* Maximum amount of media data to buffer (in milliseconds). */
+//        val loadControlMaxBufferMs = 100
+//        val loadControlMinBufferMs = 100
+//
+//        /*Configure the DefaultLoadControl to use our setting for how many
+//        Milliseconds of media data to buffer. */
+//        builder.setBufferDurationsMs(
+////            DefaultLoadControl.DEFAULT_MIN_BUFFER_MS,
+//            loadControlMinBufferMs,
+//            loadControlMaxBufferMs,
+//            /* To reduce the startup time, also change the line below */
+////            DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,
+//            loadControlMinBufferMs,
+//            loadControlMinBufferMs
+//        )
+//
+//        /* Build the actual DefaultLoadControl instance */
+//        val loadControl = builder.build();
+//
+///* Instantiate ExoPlayer with our configured DefaultLoadControl */
+//        exoPlayer = SimpleExoPlayer.Builder(
+//            this, DefaultRenderersFactory(this), DefaultTrackSelector(this),
+//            DefaultMediaSourceFactory(this), loadControl,
+//            DefaultBandwidthMeter.getSingletonInstance(this),
+//            AnalyticsCollector(Clock.DEFAULT)
+//        ).build()
+
         exoPlayer.addListener(playerStateListener)
+
+        exoPlayer.setSeekParameters(SeekParameters.EXACT) //this is the default anyway
 
         playerView = findViewById(id.playerView)
         playerView.player = exoPlayer
@@ -272,6 +313,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
 //            exoPlayer.stop()
 //            exoPlayer.playWhenReady=true
         exoPlayer.setPlaybackParameters(playbackParameters)
+//        exoPlayer.seekTo(exoPlayer.currentPosition)
 //            exoPlayer.clearVideoDecoderOutputBufferRenderer()
 
     }
@@ -304,7 +346,8 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
 
     private fun hideStartFragment() {
         supportFragmentManager.beginTransaction()
-            .hide(supportFragmentManager.findFragmentById(R.id.start_fragment_container) as StartFragment).commitAllowingStateLoss()
+            .hide(supportFragmentManager.findFragmentById(R.id.start_fragment_container) as StartFragment)
+            .commitAllowingStateLoss()
     }
 
     private fun getVideoFrameRate(uri: Uri) {
@@ -340,20 +383,32 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
 
         val frameJumpInMs = ceil(1000 / videoFrameRate).toLong()
 
+
         next_frame_btn.setOnClickListener {
             if (!isPlayingVideo) {
-                Timber.d("Current position NF: ${exoPlayer.currentPosition}")
-                Timber.d("Buffered position NF: ${exoPlayer.bufferedPosition}")
-//                exoPlayer.clearVideoDecoderOutputBufferRenderer()
-                exoPlayer.seekTo(exoPlayer.currentPosition + frameJumpInMs)
+
+                val newPosition: Long
+                if (firstTimeAfterPlay) {
+                    //todo test with 30 and 60 and modify the 3 below to something more reasonable
+                    val correctionNextFrameForward = floor(videoFrameRate/15).toLong()
+                    newPosition = exoPlayer.currentPosition + frameJumpInMs * correctionNextFrameForward
+                    firstTimeAfterPlay = false
+                } else {
+                    newPosition = exoPlayer.currentPosition + frameJumpInMs
+                }
+                firstTimeAfterPlay = false
+                Timber.d("Current position before NF: ${exoPlayer.currentPosition}")
+                exoPlayer.seekTo(newPosition)
+                Timber.d("Current position after NF: ${exoPlayer.currentPosition}")
             }
         }
         previous_frame_btn.setOnClickListener {
             if (!isPlayingVideo) {
-                Timber.d("Current position PF: ${exoPlayer.currentPosition}")
-                Timber.d("Buffered position PF: ${exoPlayer.bufferedPosition}")
+                Timber.d("Current position before PF: ${exoPlayer.currentPosition}")
+//                Timber.d("Buffered position PF: ${exoPlayer.bufferedPosition}")
 //                exoPlayer.clearVideoDecoderOutputBufferRenderer()
                 exoPlayer.seekTo(exoPlayer.currentPosition - frameJumpInMs)
+                Timber.d("Current position after PF: ${exoPlayer.currentPosition}")
             }
         }
 
@@ -373,6 +428,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
                 Player.STATE_READY -> {
                     task = Runnable {
                         exoPlayer.playWhenReady = true
+                        firstTimeAfterPlay = true
                     }
                 }
 
@@ -384,6 +440,9 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             isPlayingVideo = isPlaying
+            if (isPlaying) {
+                firstTimeAfterPlay = true
+            }
         }
     }
 
