@@ -18,15 +18,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.exoplayer2.*
-import com.google.android.exoplayer2.analytics.AnalyticsCollector
-import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.DefaultTimeBar
 import com.google.android.exoplayer2.ui.PlayerView
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.util.Clock
 import com.google.android.exoplayer2.util.Util
 import com.tatoeapps.timestopper.R.id
 import com.tatoeapps.timestopper.R.layout
@@ -104,17 +99,20 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
         playerView.setOnClickListener {
             val show =
                 (supportFragmentManager.findFragmentById(R.id.actionBtns_frag) as ActionButtonsFragment).isHidden
-
-            toggleFragmentsVisibility(
-                show,
-                supportFragmentManager.findFragmentById(R.id.actionBtns_frag) as ActionButtonsFragment
-            )
-            toggleFragmentsVisibility(
-                show,
-                supportFragmentManager.findFragmentById(R.id.speedSlider_frag) as SpeedSliderFragment
-            )
-            toggleInfoDisplay(info_container, show)
+            showActionFragments(show)
         }
+    }
+
+    private fun showActionFragments(show: Boolean) {
+        toggleFragmentsVisibility(
+            show,
+            supportFragmentManager.findFragmentById(R.id.actionBtns_frag) as ActionButtonsFragment
+        )
+        toggleFragmentsVisibility(
+            show,
+            supportFragmentManager.findFragmentById(R.id.speedSlider_frag) as SpeedSliderFragment
+        )
+        toggleInfoDisplay(info_container, show)
     }
 
     private fun toggleInfoDisplay(view: View, show: Boolean) {
@@ -181,7 +179,8 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
 
     private fun setUpPlayer() {
 
-        val defaultRenderersFactory = DefaultRenderersFactory(this).setEnableAudioTrackPlaybackParams(true)
+        val defaultRenderersFactory =
+            DefaultRenderersFactory(this).setEnableAudioTrackPlaybackParams(true)
         exoPlayer = SimpleExoPlayer.Builder(this, defaultRenderersFactory).build()
 
 //        /* Instantiate a DefaultLoadControl.Builder. */
@@ -390,8 +389,9 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
                 val newPosition: Long
                 if (firstTimeAfterPlay) {
                     //todo test with 30 and 60 and modify the 3 below to something more reasonable
-                    val correctionNextFrameForward = floor(videoFrameRate/15).toLong()
-                    newPosition = exoPlayer.currentPosition + frameJumpInMs * correctionNextFrameForward
+                    val correctionNextFrameForward = floor(videoFrameRate / 15).toLong()
+                    newPosition =
+                        exoPlayer.currentPosition + frameJumpInMs * correctionNextFrameForward
                     firstTimeAfterPlay = false
                 } else {
                     newPosition = exoPlayer.currentPosition + frameJumpInMs
@@ -433,7 +433,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
                 }
 
                 Player.STATE_ENDED -> {
-
+                    showActionFragments(true)
                 }
             }
         }
