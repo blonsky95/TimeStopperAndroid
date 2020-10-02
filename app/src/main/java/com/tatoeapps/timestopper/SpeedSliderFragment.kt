@@ -19,6 +19,7 @@ class SpeedSliderFragment : Fragment() {
         const val maxSpeedValue = 250.0f
         const val minSpeedValue = 10.0f
         const val intervalValue = 10.0f
+        const val defaultSpeedFactor = 1.0f
     }
 
     private lateinit var speedSliderInterface: SpeedSliderInterface
@@ -75,5 +76,11 @@ class SpeedSliderFragment : Fragment() {
         if (context is SpeedSliderInterface) {
             speedSliderInterface = context
         }
+    }
+
+    fun resetSpeed() {
+        speedSliderInterface.setSpeed(defaultSpeedFactor*100)
+        speed_slider.value = defaultSpeedFactor*100
+        speed_value_display.text = defaultSpeedFactor.toString()
     }
 }

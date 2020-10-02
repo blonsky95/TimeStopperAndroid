@@ -4,6 +4,32 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/TimeStopper.iml" filepath="$PROJECT_DIR$/.idea/modules/TimeStopper.iml" group="TimeStopper" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="TimeStopper/app" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1190935628/exoplayer-extension-av1.iml" filepath="$PROJECT_DIR$/.idea/modules/-1190935628/exoplayer-extension-av1.iml" group="TimeStopper/exoplayer-extension-av1" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1735742759/exoplayer-extension-cast.iml" filepath="$PROJECT_DIR$/.idea/modules/1735742759/exoplayer-extension-cast.iml" group="TimeStopper/exoplayer-extension-cast" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1617058725/exoplayer-extension-cronet.iml" filepath="$PROJECT_DIR$/.idea/modules/1617058725/exoplayer-extension-cronet.iml" group="TimeStopper/exoplayer-extension-cronet" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1691806253/exoplayer-extension-ffmpeg.iml" filepath="$PROJECT_DIR$/.idea/modules/1691806253/exoplayer-extension-ffmpeg.iml" group="TimeStopper/exoplayer-extension-ffmpeg" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1735842128/exoplayer-extension-flac.iml" filepath="$PROJECT_DIR$/.idea/modules/1735842128/exoplayer-extension-flac.iml" group="TimeStopper/exoplayer-extension-flac" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1190929797/exoplayer-extension-gvr.iml" filepath="$PROJECT_DIR$/.idea/modules/-1190929797/exoplayer-extension-gvr.iml" group="TimeStopper/exoplayer-extension-gvr" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1190928171/exoplayer-extension-ima.iml" filepath="$PROJECT_DIR$/.idea/modules/-1190928171/exoplayer-extension-ima.iml" group="TimeStopper/exoplayer-extension-ima" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-629556932/exoplayer-extension-jobdispatcher.iml" filepath="$PROJECT_DIR$/.idea/modules/-629556932/exoplayer-extension-jobdispatcher.iml" group="TimeStopper/exoplayer-extension-jobdispatcher" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1332861131/exoplayer-extension-leanback.iml" filepath="$PROJECT_DIR$/.idea/modules/-1332861131/exoplayer-extension-leanback.iml" group="TimeStopper/exoplayer-extension-leanback" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1891011766/exoplayer-extension-media2.iml" filepath="$PROJECT_DIR$/.idea/modules/1891011766/exoplayer-extension-media2.iml" group="TimeStopper/exoplayer-extension-media2" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/899980314/exoplayer-extension-mediasession.iml" filepath="$PROJECT_DIR$/.idea/modules/899980314/exoplayer-extension-mediasession.iml" group="TimeStopper/exoplayer-extension-mediasession" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1953941580/exoplayer-extension-okhttp.iml" filepath="$PROJECT_DIR$/.idea/modules/1953941580/exoplayer-extension-okhttp.iml" group="TimeStopper/exoplayer-extension-okhttp" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1736114727/exoplayer-extension-opus.iml" filepath="$PROJECT_DIR$/.idea/modules/1736114727/exoplayer-extension-opus.iml" group="TimeStopper/exoplayer-extension-opus" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1736207693/exoplayer-extension-rtmp.iml" filepath="$PROJECT_DIR$/.idea/modules/1736207693/exoplayer-extension-rtmp.iml" group="TimeStopper/exoplayer-extension-rtmp" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1190915625/exoplayer-extension-vp9.iml" filepath="$PROJECT_DIR$/.idea/modules/-1190915625/exoplayer-extension-vp9.iml" group="TimeStopper/exoplayer-extension-vp9" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-962915180/exoplayer-extension-workmanager.iml" filepath="$PROJECT_DIR$/.idea/modules/-962915180/exoplayer-extension-workmanager.iml" group="TimeStopper/exoplayer-extension-workmanager" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1237246566/exoplayer-library.iml" filepath="$PROJECT_DIR$/.idea/modules/-1237246566/exoplayer-library.iml" group="TimeStopper/exoplayer-library" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/657053522/exoplayer-library-common.iml" filepath="$PROJECT_DIR$/.idea/modules/657053522/exoplayer-library-common.iml" group="TimeStopper/exoplayer-library-common" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/300124870/exoplayer-library-core.iml" filepath="$PROJECT_DIR$/.idea/modules/300124870/exoplayer-library-core.iml" group="TimeStopper/exoplayer-library-core" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/300141241/exoplayer-library-dash.iml" filepath="$PROJECT_DIR$/.idea/modules/300141241/exoplayer-library-dash.iml" group="TimeStopper/exoplayer-library-dash" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-946416803/exoplayer-library-extractor.iml" filepath="$PROJECT_DIR$/.idea/modules/-946416803/exoplayer-library-extractor.iml" group="TimeStopper/exoplayer-library-extractor" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1237239832/exoplayer-library-hls.iml" filepath="$PROJECT_DIR$/.idea/modules/-1237239832/exoplayer-library-hls.iml" group="TimeStopper/exoplayer-library-hls" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1496212243/exoplayer-library-smoothstreaming.iml" filepath="$PROJECT_DIR$/.idea/modules/-1496212243/exoplayer-library-smoothstreaming.iml" group="TimeStopper/exoplayer-library-smoothstreaming" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1068468091/exoplayer-library-ui.iml" filepath="$PROJECT_DIR$/.idea/modules/1068468091/exoplayer-library-ui.iml" group="TimeStopper/exoplayer-library-ui" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1144606961/exoplayer-testdata.iml" filepath="$PROJECT_DIR$/.idea/modules/-1144606961/exoplayer-testdata.iml" group="TimeStopper/exoplayer-testdata" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1106821652/exoplayer-testutils.iml" filepath="$PROJECT_DIR$/.idea/modules/-1106821652/exoplayer-testutils.iml" group="TimeStopper/exoplayer-testutils" />
     </modules>
   </component>
 </project>

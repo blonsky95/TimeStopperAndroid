@@ -1,5 +1,18 @@
 package com.tatoeapps.timestopper
 
+import android.app.Application
+import android.content.Context
+import android.os.Handler
+import androidx.appcompat.app.AlertDialog
+import com.google.android.exoplayer2.DefaultRenderersFactory
+import com.google.android.exoplayer2.Renderer
+import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.audio.AudioRendererEventListener
+import com.google.android.exoplayer2.audio.AudioSink
+import com.google.android.exoplayer2.mediacodec.MediaCodecSelector
+import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.util.Util
 import timber.log.Timber
 
 object Utils {
@@ -20,5 +33,39 @@ object Utils {
 
         return total.toDouble() / 1000
     }
+
+    fun getExoPlayerInstance(context: Context): SimpleExoPlayer {
+        val myDefaultRenderersFactory = MyDefaultRendererFactory(context).setEnableAudioTrackPlaybackParams(true)
+        return SimpleExoPlayer.Builder(context, myDefaultRenderersFactory).build()
+    }
+
+    fun getDataSourceFactoryInstance(context: Context, application: Application): DataSource.Factory {
+        return DefaultDataSourceFactory(context, Util.getUserAgent(context, application.packageName))
+    }
+
+    private class MyDefaultRendererFactory(context:Context): DefaultRenderersFactory(context) {
+        override fun buildAudioRenderers(
+            context: Context,
+            extensionRendererMode: Int,
+            mediaCodecSelector: MediaCodecSelector,
+            enableDecoderFallback: Boolean,
+            audioSink: AudioSink,
+            eventHandler: Handler,
+            eventListener: AudioRendererEventListener,
+            out: java.util.ArrayList<Renderer>
+        ) {
+//            super.buildAudioRenderers(
+//                context,
+//                extensionRendererMode,
+//                mediaCodecSelector,
+//                enableDecoderFallback,
+//                audioSink,
+//                eventHandler,
+//                eventListener,
+//                out
+//            )
+        }
+    }
+
 
 }

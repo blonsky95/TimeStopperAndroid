@@ -7,8 +7,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-
-
     <com.google.android.exoplayer2.ui.PlayerView
         android:id="@+id/playerView"
         android:layout_width="0dp"
@@ -84,6 +82,17 @@
         app:layout_constraintTop_toTopOf="parent">
 
     </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:elevation="2dp"
+        android:clickable="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
