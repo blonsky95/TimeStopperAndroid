@@ -296,11 +296,8 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
      * LIFECYCLE STUFF
      */
 
-    private var isAppInForeground = true
-
     override fun onPause() {
-        Timber.d("System - on Pause")
-        isAppInForeground = false
+
         if (exoPlayer.isPlaying) {
             exoPlayer.stop()
             exoPlayer.release()
@@ -309,8 +306,6 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
     }
 
     override fun onResume() {
-        Timber.d("System - on Resume")
-        isAppInForeground = true
         if (!isFullScreenActive) {
             setUpFullScreen()
         }
@@ -430,29 +425,15 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
     private fun setUpFullScreen() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
         isFullScreenActive = true
-        Timber.d("System bars should hide")
     }
 
 
     private fun setUpSystemUiListener() {
         window.decorView.setOnSystemUiVisibilityChangeListener { visibility ->
-            //went to file provider
-            if (!isAppInForeground && visibility and View.SYSTEM_UI_FLAG_FULLSCREEN == 0) {
-                Timber.d("System bars - in file provider - no need to change anything because onresume will catch")
-                isFullScreenActive = false
-                return@setOnSystemUiVisibilityChangeListener
-            }
-
-            //user drags status bar
-            if (isAppInForeground && visibility and View.SYSTEM_UI_FLAG_FULLSCREEN == 0) {
-                Timber.d("System bars - are visible because user dragged - when user taps they will go ")
-                isFullScreenActive = false
-            } else
-            //everything invisible - setUpFullScreen() has been called
-            {
-                isFullScreenActive = true
-                Timber.d("System bars are invisible - no need to do shit")
-            }
+            //if triggered because in file provider - no need to change anything because onresume will catch the change in the variable
+            //user has dragged status bar making it visible, or setUpFullscreen has been called and its about to go invisible
+            isFullScreenActive =
+                visibility and View.SYSTEM_UI_FLAG_FULLSCREEN != 0
         }
     }
 
