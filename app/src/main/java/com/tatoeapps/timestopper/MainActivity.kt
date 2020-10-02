@@ -1,10 +1,7 @@
 package com.tatoeapps.timestopper
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.MediaExtractor
-import android.media.MediaFormat
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -12,7 +9,6 @@ import android.transition.Slide
 import android.transition.Transition
 import android.transition.TransitionManager
 import android.view.Gravity
-import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -20,7 +16,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.exoplayer2.*
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.DefaultTimeBar
 import com.google.android.exoplayer2.ui.PlayerView
 import com.tatoeapps.timestopper.R.id
@@ -31,8 +26,6 @@ import kotlinx.android.synthetic.main.exo_player_control_view.*
 import timber.log.Timber
 import java.lang.Runnable
 import java.text.DecimalFormat
-import kotlin.math.ceil
-import kotlin.math.floor
 
 
 class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInterface {
@@ -46,7 +39,6 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
 
     private var hasVideo = false
     private var isPlayingVideo = false
-    private var videoFrameRate = 30f
 
     private var task: Runnable? = null
     private var speedFactor = defaultSpeedFactor
@@ -57,7 +49,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
     private var initialPositionInMillis: Long = 0
     private var isTiming = false
     private var lapsTimeStringDisplay = ""
-    private var firstTimeAfterPlay = true
+    private var firstNextFrameSkip = true
 
     private var isFullScreenActive = false
 
@@ -90,7 +82,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
                 Player.STATE_READY -> {
                     task = Runnable {
                         exoPlayer.playWhenReady = true
-                        firstTimeAfterPlay = true
+                        firstNextFrameSkip = true
                     }
                 }
 
@@ -103,7 +95,7 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             isPlayingVideo = isPlaying
             if (isPlaying) {
-                firstTimeAfterPlay = true
+                firstNextFrameSkip = true
             }
         }
     }
@@ -206,47 +198,19 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
             //UI
             hideStartFragment()
             updateInfoDisplay(false)
-            //check this
-//            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE or
-//                    View.SYSTEM_UI_FLAG_FULLSCREEN or
-//                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
 
-            //buttons
             prepareVideoSource(MediaItem.fromUri(data!!.data!!))
-            getVideoFrameRate(data.data!!)
-            adjustPlayerControls()
+            configureExoPlayerButtons(data.data!!)
 
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-
-    private fun getVideoFrameRate(uri: Uri) {
-        val mediaExtractor = MediaExtractor()
-        try {
-            mediaExtractor.setDataSource(this, uri, null)
-            val numTracks = mediaExtractor.trackCount
-            for (i in 0 until numTracks) {
-                val mediaFormat = mediaExtractor.getTrackFormat(i)
-                val mime = mediaFormat.getString(MediaFormat.KEY_MIME)
-                if (mime!!.startsWith("video/")) {
-                    if (mediaFormat.containsKey(MediaFormat.KEY_FRAME_RATE)) {
-                        videoFrameRate =
-                            mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE).toFloat()
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Timber.d("Exception getting frame rate: $e")
-        } finally {
-            mediaExtractor.release()
-        }
-    }
-
-    private fun adjustPlayerControls() {
+    private fun configureExoPlayerButtons(mediaUri: Uri) {
         val videoSkipDefaultMs = 5000
+        val videoFrameRate = Utils.getFrameRateOfVideo(this, mediaUri)
 
-        //reset Speed
+        //reset Speed -> Speed slider frag
         (supportFragmentManager.findFragmentById(id.speedSlider_frag) as SpeedSliderFragment).resetSpeed()
 
         custom_forward.setOnClickListener {
@@ -256,36 +220,24 @@ class MainActivity : AppCompatActivity(), ActionButtonsInterface, SpeedSliderInt
             exoPlayer.seekTo(exoPlayer.currentPosition - (videoSkipDefaultMs * speedFactor).toLong())
         }
 
-        val frameJumpInMs = ceil(1000 / videoFrameRate).toLong()
-
-
         next_frame_btn.setOnClickListener {
             if (!isPlayingVideo) {
-
-                val newPosition: Long
-                if (firstTimeAfterPlay) {
-                    val correctionNextFrameForward = floor(videoFrameRate / 15).toLong()
-                    newPosition =
-                        exoPlayer.currentPosition + frameJumpInMs * correctionNextFrameForward
-                    firstTimeAfterPlay = false
-                } else {
-                    newPosition = exoPlayer.currentPosition + frameJumpInMs
-                }
-                firstTimeAfterPlay = false
+                //if first next frame skip is true, it needs frame correcting - see issue #18
+                val newPosition=Utils.getPositionOfNextFrame(exoPlayer.currentPosition,videoFrameRate,firstNextFrameSkip)
+                firstNextFrameSkip = false
                 exoPlayer.seekTo(newPosition)
             }
         }
         previous_frame_btn.setOnClickListener {
             if (!isPlayingVideo) {
-                exoPlayer.seekTo(exoPlayer.currentPosition - frameJumpInMs)
+                exoPlayer.seekTo(Utils.getPositionOfPreviousFrame(exoPlayer.currentPosition, videoFrameRate))
             }
         }
 
     }
 
     private fun prepareVideoSource(mediaItem: MediaItem) {
-        val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(mediaItem)
+        val videoSource = Utils.getVideoSource(mediaItem, dataSourceFactory)
 
         exoPlayer.setMediaSource(videoSource)
         exoPlayer.prepare()
