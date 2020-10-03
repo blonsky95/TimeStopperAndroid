@@ -5,7 +5,7 @@
     android:id="@+id/parent_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".main.MainActivity">
 
     <com.google.android.exoplayer2.ui.PlayerView
         android:id="@+id/playerView"
@@ -27,7 +27,7 @@
 
     <fragment
         android:id="@+id/speedSlider_frag"
-        android:name="com.tatoeapps.timestopper.SpeedSliderFragment"
+        android:name="com.tatoeapps.timestopper.fragments.SpeedSliderFragment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -37,7 +37,7 @@
 
     <fragment
         android:id="@+id/actionBtns_frag"
-        android:name="com.tatoeapps.timestopper.ActionButtonsFragment"
+        android:name="com.tatoeapps.timestopper.fragments.ActionButtonsFragment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"

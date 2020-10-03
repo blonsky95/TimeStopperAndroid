@@ -31,10 +31,10 @@
     <output-test url="file://$MODULE_DIR$/../../../../../ExoPlayer/library/dash/build/intermediates/javac/debugUnitTest/classes" />
     <exclude-output />
     <content url="file://$MODULE_DIR$/../../../../../ExoPlayer/library/dash">
-      <sourceFolder url="file://$MODULE_DIR$/../../../../../ExoPlayer/library/dash/build/generated/ap_generated_sources/debug/out" isTestSource="false" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../../../ExoPlayer/library/dash/build/generated/aidl_source_output_dir/debug/out" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/../../../../../ExoPlayer/library/dash/build/generated/source/buildConfig/debug" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/../../../../../ExoPlayer/library/dash/build/generated/renderscript_source_output_dir/debug/out" isTestSource="false" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../../../ExoPlayer/library/dash/build/generated/aidl_source_output_dir/debug/out" isTestSource="false" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../../../ExoPlayer/library/dash/build/generated/ap_generated_sources/debug/out" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/../../../../../ExoPlayer/library/dash/build/generated/res/rs/debug" type="java-resource" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/../../../../../ExoPlayer/library/dash/build/generated/ap_generated_sources/debugAndroidTest/out" isTestSource="true" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/../../../../../ExoPlayer/library/dash/build/generated/aidl_source_output_dir/debugAndroidTest/out" isTestSource="true" generated="true" />
