@@ -8,22 +8,24 @@ import android.provider.MediaStore
 import android.transition.Slide
 import android.transition.Transition
 import android.transition.TransitionManager
-import android.view.Gravity
-import android.view.View
+import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.GestureDetectorCompat
 import androidx.fragment.app.Fragment
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ui.DefaultTimeBar
 import com.google.android.exoplayer2.ui.PlayerView
+import com.google.android.exoplayer2.video.VideoListener
+import com.otaliastudios.zoom.ZoomSurfaceView
 import com.tatoeapps.timestopper.R
 import com.tatoeapps.timestopper.R.id
 import com.tatoeapps.timestopper.R.layout
-import com.tatoeapps.timestopper.fragments.SpeedSliderFragment.Companion.defaultSpeedFactor
 import com.tatoeapps.timestopper.fragments.ActionButtonsFragment
 import com.tatoeapps.timestopper.fragments.SpeedSliderFragment
+import com.tatoeapps.timestopper.fragments.SpeedSliderFragment.Companion.defaultSpeedFactor
 import com.tatoeapps.timestopper.fragments.StartFragment
 import com.tatoeapps.timestopper.interfaces.ActionButtonsInterface
 import com.tatoeapps.timestopper.interfaces.SpeedSliderInterface
@@ -32,15 +34,15 @@ import com.tatoeapps.timestopper.utils.Utils
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.exo_player_control_view.*
 import timber.log.Timber
-import java.lang.Runnable
 
 
 class MainActivity : AppCompatActivity(),
     ActionButtonsInterface,
     SpeedSliderInterface {
 
+    private lateinit var mDetector: GestureDetectorCompat
+
     lateinit var exoPlayer: SimpleExoPlayer
-    lateinit var playerView: PlayerView
     lateinit var dataSourceFactory: com.google.android.exoplayer2.upstream.DataSource.Factory
 
     private var hasPermissions = false
@@ -66,7 +68,7 @@ class MainActivity : AppCompatActivity(),
         Timber.plant(Timber.DebugTree())
 
         checkPermissions()
-        setUpSystemUiListener()
+        setUpSystemUiVisibilityListener()
 
         if (savedInstanceState == null) {
             getStartFragment()
@@ -94,18 +96,27 @@ class MainActivity : AppCompatActivity(),
 
     override fun startTiming() {
         updateTimeInfoVisibility(true)
-        updateLapsText(Utils.floatToStartString(timeSplitsController.startTiming(exoPlayer.currentPosition)),true)
+        updateLapsText(
+            Utils.floatToStartString(timeSplitsController.startTiming(exoPlayer.currentPosition)),
+            true
+        )
     }
 
     override fun lapTiming() {
         if (timeSplitsController.isActive) {
-            updateLapsText(Utils.pairFloatToLapString(timeSplitsController.doLap(exoPlayer.currentPosition)), false)
+            updateLapsText(
+                Utils.pairFloatToLapString(timeSplitsController.doLap(exoPlayer.currentPosition)),
+                false
+            )
         }
     }
 
     override fun stopTiming() {
         if (timeSplitsController.isActive) {
-            updateLapsText(Utils.pairFloatToLapString(timeSplitsController.stopTiming(exoPlayer.currentPosition)), false)
+            updateLapsText(
+                Utils.pairFloatToLapString(timeSplitsController.stopTiming(exoPlayer.currentPosition)),
+                false
+            )
         }
     }
 
@@ -182,12 +193,37 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun setUpPlayer() {
+
         exoPlayer = Utils.getExoPlayerInstance(this)
+        val playerControls = player_controls
+        val surface = surface_view
+
+        exoPlayer.addVideoListener(object :VideoListener {
+            override fun onVideoSizeChanged(
+                width: Int,
+                height: Int,
+                unappliedRotationDegrees: Int,
+                pixelWidthHeightRatio: Float
+            ) {
+                surface.setContentSize(width.toFloat(),height.toFloat())
+            }
+        })
+        surface.setBackgroundColor(ContextCompat.getColor(this,R.color.colorAccent))
+        surface.addCallback(object: ZoomSurfaceView.Callback {
+            override fun onZoomSurfaceCreated(view: ZoomSurfaceView) {
+                exoPlayer.setVideoSurface(view.surface)
+            }
+
+            override fun onZoomSurfaceDestroyed(view: ZoomSurfaceView) {
+            }
+        })
+
+        playerControls.player=exoPlayer
+        playerControls.show()
+
+
         exoPlayer.addListener(playerStateListener)
         exoPlayer.setSeekParameters(SeekParameters.EXACT) //this is the default anyway
-
-        playerView = findViewById(id.playerView)
-        playerView.player = exoPlayer
 
         dataSourceFactory = Utils.getDataSourceFactoryInstance(this, application)
     }
@@ -209,14 +245,23 @@ class MainActivity : AppCompatActivity(),
         next_frame_btn.setOnClickListener {
             if (!isPlayingVideo) {
                 //if first next frame skip is true, it needs frame correcting - see issue #18
-                val newPosition= Utils.getPositionOfNextFrame(exoPlayer.currentPosition,videoFrameRate,firstNextFrameSkip)
+                val newPosition = Utils.getPositionOfNextFrame(
+                    exoPlayer.currentPosition,
+                    videoFrameRate,
+                    firstNextFrameSkip
+                )
                 firstNextFrameSkip = false
                 exoPlayer.seekTo(newPosition)
             }
         }
         previous_frame_btn.setOnClickListener {
             if (!isPlayingVideo) {
-                exoPlayer.seekTo(Utils.getPositionOfPreviousFrame(exoPlayer.currentPosition, videoFrameRate))
+                exoPlayer.seekTo(
+                    Utils.getPositionOfPreviousFrame(
+                        exoPlayer.currentPosition,
+                        videoFrameRate
+                    )
+                )
             }
         }
 
@@ -266,14 +311,14 @@ class MainActivity : AppCompatActivity(),
      * EVERYTHING UNDER HERE IS RELATED TO APP **UI** (OR SHOULD BE)
      */
 
-    private fun updateLapsText(newText:String, isReset:Boolean) {
+    private fun updateLapsText(newText: String, isReset: Boolean) {
         if (isReset) {
             timePointsDisplay.text = newText
             return
         } else {
             var timePointsDisplayText = timePointsDisplay.text.toString()
-            timePointsDisplayText+=newText
-            timePointsDisplay.text=timePointsDisplayText
+            timePointsDisplayText += newText
+            timePointsDisplay.text = timePointsDisplayText
         }
     }
 
@@ -293,23 +338,26 @@ class MainActivity : AppCompatActivity(),
 
     private fun getStartFragment() {
         supportFragmentManager.beginTransaction()
-            .add(id.start_fragment_container,
+            .add(
+                id.start_fragment_container,
                 StartFragment()
             ).commit()
     }
 
     private fun setUserScreenTapListener() {
-        playerView.setOnClickListener {
-            val show =
-                (supportFragmentManager.findFragmentById(id.actionBtns_frag) as ActionButtonsFragment).isHidden
-            showActionFragments(show)
-            if (!isFullScreenActive) {
-                setUpFullScreen()
-            }
-        }
+        mDetector = GestureDetectorCompat(this, MyGestureListener())
+        surface_view.setOnTouchListener { _, p1 -> mDetector.onTouchEvent(p1) }
+        surface_view.setMaxZoom(5f)
+        Timber.d("GESTURE - max zoom: ${surface_view.getMaxZoom()}")
+
     }
 
     private fun showActionFragments(show: Boolean) {
+        if (show) {
+            player_controls.show()
+        } else {
+            player_controls.hide()
+        }
         toggleFragmentsVisibility(
             show,
             supportFragmentManager.findFragmentById(id.actionBtns_frag) as ActionButtonsFragment
@@ -357,7 +405,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun hideBuffering() {
         val timeBar: DefaultTimeBar =
-            playerView.findViewById<View>(id.exo_progress) as DefaultTimeBar
+            player_controls.findViewById<View>(id.exo_progress) as DefaultTimeBar
         timeBar.setBufferedColor(0x33FFFFFF)
     }
 
@@ -366,7 +414,7 @@ class MainActivity : AppCompatActivity(),
         isFullScreenActive = true
     }
 
-    private fun setUpSystemUiListener() {
+    private fun setUpSystemUiVisibilityListener() {
         window.decorView.setOnSystemUiVisibilityChangeListener { visibility ->
             //if triggered because in file provider - no need to change anything because onresume will catch the change in the variable
             //user has dragged status bar making it visible, or setUpFullscreen has been called and its about to go invisible
@@ -416,4 +464,21 @@ class MainActivity : AppCompatActivity(),
             }
         }
     }
+
+
+    inner class MyGestureListener : GestureDetector.SimpleOnGestureListener() {
+
+        override fun onSingleTapUp(e: MotionEvent?): Boolean {
+            Timber.d( "GESTURE - se ha tocado una vez: ")
+            val show =
+                (supportFragmentManager.findFragmentById(id.actionBtns_frag) as ActionButtonsFragment).isHidden
+            showActionFragments(show)
+
+            if (!isFullScreenActive) {
+                setUpFullScreen()
+            }
+            return true
+        }
+    }
+
 }

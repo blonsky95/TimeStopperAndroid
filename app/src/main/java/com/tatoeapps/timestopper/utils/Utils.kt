@@ -117,9 +117,6 @@ object Utils {
         return currentExoPlayerPosition - frameJumpInMs
     }
 
-
-
-
     private class MyDefaultRendererFactory(context: Context) : DefaultRenderersFactory(context) {
         override fun buildAudioRenderers(
             context: Context,
