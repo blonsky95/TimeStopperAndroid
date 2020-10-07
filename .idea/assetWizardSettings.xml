@@ -23,7 +23,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material/icons/materialicons/add_circle_outline/baseline_add_circle_outline_24.xml" />
+                                      <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material/icons/materialicons/arrow_drop_down_circle/baseline_arrow_drop_down_circle_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -35,8 +35,8 @@
                           <map>
                             <entry key="assetSourceType" value="FILE" />
                             <entry key="color" value="ffffff" />
-                            <entry key="outputName" value="ic_add_video_icon" />
-                            <entry key="sourceFile" value="C:\Users\pablo\Downloads\add_video_icon.svg" />
+                            <entry key="outputName" value="ic_next_frame" />
+                            <entry key="sourceFile" value="C:\Users\pablo\Downloads\play-next-button.svg" />
                           </map>
                         </option>
                       </PersistentState>

@@ -8,7 +8,10 @@ import android.provider.MediaStore
 import android.transition.Slide
 import android.transition.Transition
 import android.transition.TransitionManager
-import android.view.*
+import android.view.GestureDetector
+import android.view.Gravity
+import android.view.MotionEvent
+import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -17,7 +20,6 @@ import androidx.core.view.GestureDetectorCompat
 import androidx.fragment.app.Fragment
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ui.DefaultTimeBar
-import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.video.VideoListener
 import com.otaliastudios.zoom.ZoomSurfaceView
 import com.tatoeapps.timestopper.R
@@ -239,7 +241,12 @@ class MainActivity : AppCompatActivity(),
             exoPlayer.seekTo(exoPlayer.currentPosition + (videoSkipDefaultMs * speedFactor).toLong())
         }
         custom_rewind.setOnClickListener {
-            exoPlayer.seekTo(exoPlayer.currentPosition - (videoSkipDefaultMs * speedFactor).toLong())
+            val rewindPosition = if (exoPlayer.currentPosition - (videoSkipDefaultMs * speedFactor)<0) {
+                0L
+            } else {
+                exoPlayer.currentPosition - (videoSkipDefaultMs * speedFactor).toLong()
+            }
+            exoPlayer.seekTo(rewindPosition)
         }
 
         next_frame_btn.setOnClickListener {
@@ -371,7 +378,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun toggleInfoDisplay(view: View, show: Boolean) {
         val transition: Transition = Slide(Gravity.START)
-        transition.duration = 400
+        transition.duration = 200
         transition.addTarget(view)
         TransitionManager.beginDelayedTransition(parent_container, transition)
         view.visibility = if (show) View.VISIBLE else View.GONE
