@@ -8,6 +8,7 @@
     tools:context=".main.MainActivity">
 
     <FrameLayout
+        android:id="@+id/frameLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#00000000">
@@ -18,19 +19,18 @@
             android:layout_height="match_parent"
             app:horizontalPanEnabled="true"
             app:verticalPanEnabled="true"
-            app:zoomEnabled="true"
-            />
+            app:zoomEnabled="true" />
 
         <com.google.android.exoplayer2.ui.PlayerControlView
             android:id="@+id/player_controls"
-            app:controller_layout_id="@layout/exo_player_control_view"
-            app:show_timeout="0"
-            app:show_buffering="never"
-            app:time_bar_min_update_interval="5"
-
-            android:layout_gravity="bottom"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            app:controller_layout_id="@layout/exo_player_control_view"
+
+            app:show_buffering="never"
+            app:show_timeout="0"
+            app:time_bar_min_update_interval="5" />
 
     </FrameLayout>
 
@@ -92,6 +92,21 @@
 
     </FrameLayout>
 
+    <fragment
+        android:id="@+id/guide_frag"
+        android:name="com.tatoeapps.timestopper.fragments.GuideFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+<!--this view here is used to allow user to pull down
+the system bar without triggering timestopper screen tap events
+- if you click this nothing happens-->
     <View
         android:layout_width="match_parent"
         android:layout_height="32dp"

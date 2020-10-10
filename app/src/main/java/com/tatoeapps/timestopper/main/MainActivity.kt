@@ -26,10 +26,12 @@ import com.tatoeapps.timestopper.R
 import com.tatoeapps.timestopper.R.id
 import com.tatoeapps.timestopper.R.layout
 import com.tatoeapps.timestopper.fragments.ActionButtonsFragment
+import com.tatoeapps.timestopper.fragments.GuideFragment
 import com.tatoeapps.timestopper.fragments.SpeedSliderFragment
 import com.tatoeapps.timestopper.fragments.SpeedSliderFragment.Companion.defaultSpeedFactor
 import com.tatoeapps.timestopper.fragments.StartFragment
 import com.tatoeapps.timestopper.interfaces.ActionButtonsInterface
+import com.tatoeapps.timestopper.interfaces.GuideInterface
 import com.tatoeapps.timestopper.interfaces.SpeedSliderInterface
 import com.tatoeapps.timestopper.utils.TimeSplitsController
 import com.tatoeapps.timestopper.utils.Utils
@@ -40,7 +42,8 @@ import timber.log.Timber
 
 class MainActivity : AppCompatActivity(),
     ActionButtonsInterface,
-    SpeedSliderInterface {
+    SpeedSliderInterface,
+    GuideInterface {
 
     private lateinit var mDetector: GestureDetectorCompat
 
@@ -72,13 +75,29 @@ class MainActivity : AppCompatActivity(),
         checkPermissions()
         setUpSystemUiVisibilityListener()
 
+        supportFragmentManager.beginTransaction()
+            .hide(supportFragmentManager.findFragmentById(id.guide_frag) as GuideFragment).commit()
+
         if (savedInstanceState == null) {
             getStartFragment()
         }
 
+
         setUpPlayer()
         hideBuffering()
         setUserScreenTapListener()
+    }
+
+    /**
+     * Guide interface
+     */
+
+    override fun hideGuideFragment() {
+        //hide the fragment
+        toggleFragmentsVisibility(
+            false,
+            supportFragmentManager.findFragmentById(id.guide_frag) as GuideFragment
+        )
     }
 
     /**
@@ -128,6 +147,10 @@ class MainActivity : AppCompatActivity(),
             TimeSplitsController()
     }
 
+    override fun helpButtonPressed() {
+        showGuideWindow()
+    }
+
     /**
      * BUTTON ACTIONS
      */
@@ -161,6 +184,14 @@ class MainActivity : AppCompatActivity(),
         speedFactor = newSpeed
         val playbackParameters = PlaybackParameters(speedFactor)
         exoPlayer.setPlaybackParameters(playbackParameters)
+    }
+
+    private fun showGuideWindow() {
+        toggleFragmentsVisibility(
+            true,
+            supportFragmentManager.findFragmentById(id.guide_frag) as GuideFragment,
+            true
+        )
     }
 
     /**
@@ -200,18 +231,18 @@ class MainActivity : AppCompatActivity(),
         val playerControls = player_controls
         val surface = surface_view
 
-        exoPlayer.addVideoListener(object :VideoListener {
+        exoPlayer.addVideoListener(object : VideoListener {
             override fun onVideoSizeChanged(
                 width: Int,
                 height: Int,
                 unappliedRotationDegrees: Int,
                 pixelWidthHeightRatio: Float
             ) {
-                surface.setContentSize(width.toFloat(),height.toFloat())
+                surface.setContentSize(width.toFloat(), height.toFloat())
             }
         })
-        surface.setBackgroundColor(ContextCompat.getColor(this,R.color.colorAccent))
-        surface.addCallback(object: ZoomSurfaceView.Callback {
+        surface.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAccent))
+        surface.addCallback(object : ZoomSurfaceView.Callback {
             override fun onZoomSurfaceCreated(view: ZoomSurfaceView) {
                 exoPlayer.setVideoSurface(view.surface)
             }
@@ -220,7 +251,7 @@ class MainActivity : AppCompatActivity(),
             }
         })
 
-        playerControls.player=exoPlayer
+        playerControls.player = exoPlayer
         playerControls.show()
 
 
@@ -241,11 +272,12 @@ class MainActivity : AppCompatActivity(),
             exoPlayer.seekTo(exoPlayer.currentPosition + (videoSkipDefaultMs * speedFactor).toLong())
         }
         custom_rewind.setOnClickListener {
-            val rewindPosition = if (exoPlayer.currentPosition - (videoSkipDefaultMs * speedFactor)<0) {
-                0L
-            } else {
-                exoPlayer.currentPosition - (videoSkipDefaultMs * speedFactor).toLong()
-            }
+            val rewindPosition =
+                if (exoPlayer.currentPosition - (videoSkipDefaultMs * speedFactor) < 0) {
+                    0L
+                } else {
+                    exoPlayer.currentPosition - (videoSkipDefaultMs * speedFactor).toLong()
+                }
             exoPlayer.seekTo(rewindPosition)
         }
 
@@ -287,7 +319,6 @@ class MainActivity : AppCompatActivity(),
      */
 
     override fun onPause() {
-
         if (exoPlayer.isPlaying) {
             exoPlayer.stop()
             exoPlayer.release()
@@ -303,20 +334,29 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onBackPressed() {
-        val dialogBuilder = AlertDialog.Builder(this)
-            .setMessage("Are you sure you want to quit?")
-            .setPositiveButton(
-                "Yes"
-            ) { _, _ -> super.onBackPressed() }
-            .setNegativeButton("No", null)
-            .setCancelable(true)
+        if (areFragmentsInBackstack()) {
+            super.onBackPressed()
+        } else {
+            val dialogBuilder = AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to quit?")
+                .setPositiveButton(
+                    "Yes"
+                ) { _, _ -> super.onBackPressed() }
+                .setNegativeButton("No", null)
+                .setCancelable(true)
 
-        dialogBuilder.show()
+            dialogBuilder.show()
+        }
+
     }
 
     /**
      * EVERYTHING UNDER HERE IS RELATED TO APP **UI** (OR SHOULD BE)
      */
+
+    private fun areFragmentsInBackstack(): Boolean {
+        return supportFragmentManager.backStackEntryCount>0
+    }
 
     private fun updateLapsText(newText: String, isReset: Boolean) {
         if (isReset) {
@@ -384,7 +424,11 @@ class MainActivity : AppCompatActivity(),
         view.visibility = if (show) View.VISIBLE else View.GONE
     }
 
-    private fun toggleFragmentsVisibility(show: Boolean, fragment: Fragment) {
+    private fun toggleFragmentsVisibility(
+        show: Boolean,
+        fragment: Fragment,
+        addToBackstack: Boolean = false
+    ) {
 
         val fragTransaction = supportFragmentManager.beginTransaction()
         if (fragment is ActionButtonsFragment) {
@@ -404,7 +448,11 @@ class MainActivity : AppCompatActivity(),
         }
 
         if (show) {
-            fragTransaction.show(fragment).commit()
+            if (addToBackstack) {
+                fragTransaction.show(fragment).addToBackStack("guide_frag").commit()
+            } else {
+                fragTransaction.show(fragment).commit()
+            }
         } else {
             fragTransaction.hide(fragment).commit()
         }
@@ -476,7 +524,7 @@ class MainActivity : AppCompatActivity(),
     inner class MyGestureListener : GestureDetector.SimpleOnGestureListener() {
 
         override fun onSingleTapUp(e: MotionEvent?): Boolean {
-            Timber.d( "GESTURE - se ha tocado una vez: ")
+            Timber.d("GESTURE - se ha tocado una vez: ")
             val show =
                 (supportFragmentManager.findFragmentById(id.actionBtns_frag) as ActionButtonsFragment).isHidden
             showActionFragments(show)

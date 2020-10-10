@@ -20,4 +20,8 @@ interface ActionButtonsInterface {
     fun clearTiming() {
 
     }
+
+    fun helpButtonPressed() {
+
+    }
 }

@@ -13,6 +13,7 @@ import kotlinx.android.synthetic.main.fragment_action_btns.view.*
 class ActionButtonsFragment : Fragment() {
 
     private lateinit var actionButtonsInterface: ActionButtonsInterface
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -38,7 +39,9 @@ class ActionButtonsFragment : Fragment() {
         view.clear_btn.setOnClickListener {
             actionButtonsInterface.clearTiming()
         }
-
+        view.get_help_btn.setOnClickListener {
+            actionButtonsInterface.helpButtonPressed()
+        }
 
     }
 
