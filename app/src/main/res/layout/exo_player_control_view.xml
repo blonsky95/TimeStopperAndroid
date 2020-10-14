@@ -23,7 +23,8 @@
         <ImageButton
             android:id="@+id/previous_frame_btn"
             android:src="@drawable/ic_previous_frame"
-            style="@style/ExoMediaButton.FastForward"/>
+            style="@style/ExoMediaButton.FastForward"
+            tools:ignore="ContentDescription" />
 
         <View
             android:layout_width="1dp"

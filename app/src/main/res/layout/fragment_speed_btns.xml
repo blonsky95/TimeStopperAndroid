@@ -7,21 +7,11 @@
     android:background="@drawable/rounded_background"
     android:orientation="horizontal">
 
-<!--    <ImageView-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_gravity="center"-->
-<!--        android:gravity="center"-->
-<!--        android:src="@drawable/ic_speed"-->
-<!--        android:layout_marginStart="8dp"-->
-<!--        android:textColor="#FFFFFF"-->
-<!--        android:textSize="16sp" />-->
-
     <TextView
         android:id="@+id/speed_value_display"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="1.0"
+        android:text="@string/default_speed"
         android:layout_marginStart="8dp"
         android:textColor="#FFFFFF"
         android:layout_gravity="center"

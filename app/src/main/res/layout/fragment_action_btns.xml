@@ -28,7 +28,7 @@
         android:gravity="center"
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
-        android:text="Start"
+        android:text="@string/start_timing"
         android:textSize="14sp" />
 
     <TextView
@@ -40,7 +40,7 @@
         android:gravity="center"
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
-        android:text="Lap"
+        android:text="@string/lap_timing"
         android:textSize="14sp" />
 
     <TextView
@@ -52,7 +52,7 @@
         android:gravity="center"
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
-        android:text="Stop"
+        android:text="@string/stop_timing"
         android:textSize="14sp" />
 
     <TextView
@@ -64,7 +64,7 @@
         android:gravity="center"
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
-        android:text="Clear"
+        android:text="@string/clear_timing"
         android:textSize="14sp" />
 
     <ImageView

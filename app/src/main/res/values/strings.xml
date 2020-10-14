@@ -1,3 +1,24 @@
 <resources>
     <string name="app_name">TimeStopper</string>
+    <string name="default_speed">1.0</string>
+    <string name="start_timing">Start</string>
+    <string name="lap_timing">Lap</string>
+    <string name="stop_timing">Stop</string>
+    <string name="clear_timing">Clear</string>
+    <string name="guide_title">How to use Timestopper</string>
+    <string name="guide_subtitle_1">Video controls</string>
+    <string name="guide_import_video">Select a new video</string>
+    <string name="guide_decrease_speed">Use the minus button to decrease the playback speed, anything lower than 1.0 is slower than normal speed</string>
+    <string name="guide_increase_speed">Use the add button to increase the playback speed</string>
+    <string name="guide_play_video">Play/pause video playback</string>
+    <string name="guide_rewind_video">Rewinds up to 5 seconds of video</string>
+    <string name="guide_fast_forward_video">Fast forward up to 5 seconds of video</string>
+    <string name="guide_previous_frame">If video is paused, goes to previous frame</string>
+    <string name="guide_next_frame">If video is paused, goes to next frame</string>
+    <string name="guide_subtitle_2">Timing controls</string>
+    <string name="guide_start_timing">Starts the timer at this precise moment</string>
+    <string name="guide_lap_timing">Displays the time since start/lap, as well as the split</string>
+    <string name="guide_stop_timing">Stops timing</string>
+    <string name="guide_clear_timing">Resets and gets rid of the times display</string>
+    <string name="guide_return_button">return</string>
 </resources>

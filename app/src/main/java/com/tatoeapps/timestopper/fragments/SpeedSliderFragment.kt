@@ -34,11 +34,6 @@ class SpeedSliderFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-//        view.speed_slider.setLabelFormatter { value: Float ->
-//            val format = NumberFormat.getInstance()
-//            format.format((value / 100).toDouble())
-//        }
-
         view.speed_slider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started

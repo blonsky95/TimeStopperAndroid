@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity(),
     private lateinit var mDetector: GestureDetectorCompat
 
     lateinit var exoPlayer: SimpleExoPlayer
-    lateinit var dataSourceFactory: com.google.android.exoplayer2.upstream.DataSource.Factory
+    private lateinit var dataSourceFactory: com.google.android.exoplayer2.upstream.DataSource.Factory
 
     private var hasPermissions = false
     private val PERMISSION_REQUEST_CODE = 123
