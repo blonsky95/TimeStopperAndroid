@@ -1,6 +1,6 @@
 package com.tatoeapps.timestopper.utils
 
-class TimeSplitsController() {
+class TimeSplitsController {
     //array of positions user marks in exoplayer
     private var timePointsArray = arrayListOf<Long>()
     var isActive = false

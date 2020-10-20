@@ -67,25 +67,27 @@ class MainActivity : AppCompatActivity(),
         TimeSplitsController()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(layout.activity_main)
+        if (Utils.isUserFirstTimer(this)) {
+            startActivity(Intent(this, OnBoardingActivity::class.java))
+        } else {
+            super.onCreate(savedInstanceState)
+            setContentView(layout.activity_main)
 
-        Timber.plant(Timber.DebugTree())
+            Timber.plant(Timber.DebugTree())
 
-        checkPermissions()
-        setUpSystemUiVisibilityListener()
+            checkPermissions()
+            setUpSystemUiVisibilityListener()
 
-        supportFragmentManager.beginTransaction()
-            .hide(supportFragmentManager.findFragmentById(id.guide_frag) as GuideFragment).commit()
+            supportFragmentManager.beginTransaction()
+                .hide(supportFragmentManager.findFragmentById(id.guide_frag) as GuideFragment).commit()
 
-        if (savedInstanceState == null) {
-            getStartFragment()
+            if (savedInstanceState == null) {
+                getStartFragment()
+            }
+            setUpPlayer()
+            hideBuffering()
+            setUserScreenTapListener()
         }
-
-
-        setUpPlayer()
-        hideBuffering()
-        setUserScreenTapListener()
     }
 
     /**
@@ -360,7 +362,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun updateLapsText(newText: String, isReset: Boolean) {
         if (isReset) {
-            timePointsDisplay.text = newText
+           timePointsDisplay.text = newText
             return
         } else {
             var timePointsDisplayText = timePointsDisplay.text.toString()

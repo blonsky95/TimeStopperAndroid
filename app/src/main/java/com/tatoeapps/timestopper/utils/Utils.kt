@@ -18,6 +18,7 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import com.tatoeapps.timestopper.R
 import timber.log.Timber
 import java.text.DecimalFormat
 import kotlin.math.ceil
@@ -36,6 +37,29 @@ object Utils {
 
     fun pairFloatToLapString(pair: Pair<Float,Float>) :String{
         return "\n${df.format(pair.first)} (${df.format(pair.second)})"
+    }
+
+    /**
+     * SHARED PREFS STUFF
+     */
+
+    fun isUserFirstTimer(context: Context): Boolean {
+        val sharedPref = context.getSharedPreferences(
+            context.getString(R.string.preference_first_time_key), Context.MODE_PRIVATE
+        )
+        val defaultValue = true
+        return sharedPref.getBoolean(context.getString(R.string.preference_first_time_key), defaultValue)
+//        return true
+    }
+
+    fun updateUserFirstTimer(context: Context, isFirstTime:Boolean) {
+        val sharedPref = context.getSharedPreferences(
+            context.getString(R.string.preference_first_time_key), Context.MODE_PRIVATE
+        )
+        with(sharedPref.edit()) {
+            putBoolean(context.getString(R.string.preference_first_time_key), isFirstTime)
+            apply()
+        }
     }
 
 

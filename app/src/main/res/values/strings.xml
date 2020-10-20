@@ -21,4 +21,10 @@
     <string name="guide_stop_timing">Stops timing</string>
     <string name="guide_clear_timing">Resets and gets rid of the times display</string>
     <string name="guide_return_button">return</string>
+    <string name="preference_first_time_key">preference_first_time_user</string>
+    <string name="next_button">Next</string>
+    <string name="timestopper_features">TimeStopper features</string>
+    <string name="onboarding_screen_1_text">Frame-by-frame navigation\nZoom in/out\nVideo speed control</string>
+    <string name="content_desc_button_forward">Button forward</string>
+    <string name="onboarding_screen_2_text">Video timing - Use the buttons on the right panel freely or use a combination of slow motion and frame-by-frame navigation to get accurate timings</string>
 </resources>
