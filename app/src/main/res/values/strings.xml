@@ -1,30 +1,32 @@
-<resources>
-    <string name="app_name">TimeStopper</string>
-    <string name="default_speed">1.0</string>
-    <string name="start_timing">Start</string>
-    <string name="lap_timing">Lap</string>
-    <string name="stop_timing">Stop</string>
-    <string name="clear_timing">Clear</string>
-    <string name="guide_title">How to use Timestopper</string>
-    <string name="guide_subtitle_1">Video controls</string>
-    <string name="guide_import_video">Select a new video</string>
-    <string name="guide_decrease_speed">Use the minus button to decrease the playback speed, anything lower than 1.0 is slower than normal speed</string>
-    <string name="guide_increase_speed">Use the add button to increase the playback speed</string>
-    <string name="guide_play_video">Play/pause video playback</string>
-    <string name="guide_rewind_video">Rewinds up to 5 seconds of video</string>
-    <string name="guide_fast_forward_video">Fast forward up to 5 seconds of video</string>
-    <string name="guide_previous_frame">If video is paused, goes to previous frame</string>
-    <string name="guide_next_frame">If video is paused, goes to next frame</string>
-    <string name="guide_subtitle_2">Timing controls</string>
-    <string name="guide_start_timing">Starts the timer at this precise moment</string>
-    <string name="guide_lap_timing">Displays the time since start/lap, as well as the split</string>
-    <string name="guide_stop_timing">Stops timing</string>
-    <string name="guide_clear_timing">Resets and gets rid of the times display</string>
-    <string name="guide_return_button">return</string>
-    <string name="preference_first_time_key">preference_first_time_user</string>
-    <string name="next_button">Next</string>
-    <string name="timestopper_features">TimeStopper features</string>
-    <string name="onboarding_screen_1_text">Frame-by-frame navigation\nZoom in/out\nVideo speed control</string>
-    <string name="content_desc_button_forward">Button forward</string>
-    <string name="onboarding_screen_2_text">Video timing - Use the buttons on the right panel freely or use a combination of slow motion and frame-by-frame navigation to get accurate timings</string>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name" tools:ignore="MissingTranslation">TimeStopper</string>
+    <string name="default_speed" tools:ignore="MissingTranslation">1.0</string>
+    <string name="start_timing" tools:ignore="MissingTranslation">Start</string>
+    <string name="lap_timing" tools:ignore="MissingTranslation">Lap</string>
+    <string name="stop_timing" tools:ignore="MissingTranslation">Stop</string>
+    <string name="clear_timing" tools:ignore="MissingTranslation">Clear</string>
+    <string name="guide_title" tools:ignore="MissingTranslation">How to use Timestopper</string>
+    <string name="guide_subtitle_1" tools:ignore="MissingTranslation">Video controls</string>
+    <string name="guide_import_video" tools:ignore="MissingTranslation">Select a new video</string>
+    <string name="guide_decrease_speed" tools:ignore="MissingTranslation">Use the minus button to decrease the playback speed, anything lower than 1.0 is slower than normal speed</string>
+    <string name="guide_increase_speed" tools:ignore="MissingTranslation">Use the add button to increase the playback speed</string>
+    <string name="guide_play_video" tools:ignore="MissingTranslation">Play/pause video playback</string>
+    <string name="guide_rewind_video" tools:ignore="MissingTranslation">Rewinds up to 5 seconds of video</string>
+    <string name="guide_fast_forward_video" tools:ignore="MissingTranslation">Fast forward up to 5 seconds of video</string>
+    <string name="guide_previous_frame" tools:ignore="MissingTranslation">If video is paused, goes to previous frame</string>
+    <string name="guide_next_frame" tools:ignore="MissingTranslation">If video is paused, goes to next frame</string>
+    <string name="guide_subtitle_2" tools:ignore="MissingTranslation">Timing controls</string>
+    <string name="guide_start_timing" tools:ignore="MissingTranslation">Starts the timer at this precise moment</string>
+    <string name="guide_lap_timing" tools:ignore="MissingTranslation">Displays the time since start/lap, as well as the split</string>
+    <string name="guide_stop_timing" tools:ignore="MissingTranslation">Stops timing</string>
+    <string name="guide_clear_timing" tools:ignore="MissingTranslation">Resets and gets rid of the times display</string>
+    <string name="guide_return_button" tools:ignore="MissingTranslation">return</string>
+    <string name="preference_first_time_key" tools:ignore="MissingTranslation">preference_first_time_user</string>
+    <string name="next_button" tools:ignore="MissingTranslation">Next</string>
+    <string name="timestopper_features" tools:ignore="MissingTranslation">Features</string>
+    <string name="onboarding_screen_1_text" tools:ignore="MissingTranslation">Frame-by-frame navigation\nZoom in/out\nVideo speed control</string>
+    <string name="content_desc_button_forward" tools:ignore="MissingTranslation">Button forward</string>
+    <string name="onboarding_screen_2_text" tools:ignore="MissingTranslation">Use the buttons on the right panel with slow motion or frame-by-frame navigation to get accurate timings</string>
+    <string name="feature_1">Frame-by-frame navigation</string>
+    <string name="video_timing">Video timing</string>
 </resources>

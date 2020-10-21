@@ -62,15 +62,19 @@ class MainActivity : AppCompatActivity(),
     private var firstNextFrameSkip = true
 
     private var isFullScreenActive = false
+    private var isOnboardingOn = false
 
     private var timeSplitsController =
         TimeSplitsController()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
         if (Utils.isUserFirstTimer(this)) {
+            isOnboardingOn=true
             startActivity(Intent(this, OnBoardingActivity::class.java))
         } else {
-            super.onCreate(savedInstanceState)
+            isOnboardingOn=false
             setContentView(layout.activity_main)
 
             Timber.plant(Timber.DebugTree())
@@ -233,6 +237,7 @@ class MainActivity : AppCompatActivity(),
         val playerControls = player_controls
         val surface = surface_view
 
+
         exoPlayer.addVideoListener(object : VideoListener {
             override fun onVideoSizeChanged(
                 width: Int,
@@ -321,7 +326,7 @@ class MainActivity : AppCompatActivity(),
      */
 
     override fun onPause() {
-        if (exoPlayer.isPlaying) {
+        if (!isOnboardingOn&&exoPlayer.isPlaying) {
             exoPlayer.stop()
             exoPlayer.release()
         }

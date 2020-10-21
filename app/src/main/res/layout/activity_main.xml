@@ -27,8 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             app:controller_layout_id="@layout/exo_player_control_view"
-
-            app:show_buffering="never"
+            app:show_buffering="always"
             app:show_timeout="0"
             app:time_bar_min_update_interval="5" />
 
