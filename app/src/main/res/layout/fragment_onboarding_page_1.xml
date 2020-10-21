@@ -99,7 +99,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:layout_marginStart="6dp"
-                    android:text="Video speed control"
+                    android:text="@string/feature_2"
                     android:textColor="@color/exo_white" />
             </LinearLayout>
 
@@ -120,7 +120,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:layout_marginStart="6dp"
-                    android:text="Zoom in/out"
+                    android:text="@string/feature_3"
                     android:textColor="@color/exo_white" />
             </LinearLayout>
 
@@ -154,7 +154,7 @@
             android:layout_gravity="end|bottom"
             android:gravity="center"
             android:padding="8dp"
-            android:text="Next"
+            android:text="@string/next_button"
             android:textColor="@color/exo_white"
             android:textSize="18sp" />
 

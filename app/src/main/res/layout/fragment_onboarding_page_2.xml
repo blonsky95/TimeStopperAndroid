@@ -118,7 +118,7 @@
             android:layout_gravity="end|bottom"
             android:gravity="center"
             android:padding="8dp"
-            android:text="Next"
+            android:text="@string/next_button"
             android:textColor="@color/exo_white"
             android:textSize="18sp" />
 
