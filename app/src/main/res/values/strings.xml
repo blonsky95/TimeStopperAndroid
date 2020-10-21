@@ -30,4 +30,7 @@
     <string name="video_timing" tools:ignore="MissingTranslation">Video timing</string>
     <string name="feature_2" tools:ignore="MissingTranslation">Video speed control</string>
     <string name="feature_3" tools:ignore="MissingTranslation">Zoom in/out</string>
+    <string name="dialog_quit" tools:ignore="MissingTranslation">Are you sure you want to quit?</string>
+    <string name="permission_toast" tools:ignore="MissingTranslation">Please accept storage access permissions to select videos</string>
+
 </resources>

@@ -12,6 +12,7 @@ import android.view.GestureDetector
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -71,10 +72,10 @@ class MainActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
 
         if (Utils.isUserFirstTimer(this)) {
-            isOnboardingOn=true
+            isOnboardingOn = true
             startActivity(Intent(this, OnBoardingActivity::class.java))
         } else {
-            isOnboardingOn=false
+            isOnboardingOn = false
             setContentView(layout.activity_main)
 
             Timber.plant(Timber.DebugTree())
@@ -83,7 +84,8 @@ class MainActivity : AppCompatActivity(),
             setUpSystemUiVisibilityListener()
 
             supportFragmentManager.beginTransaction()
-                .hide(supportFragmentManager.findFragmentById(id.guide_frag) as GuideFragment).commit()
+                .hide(supportFragmentManager.findFragmentById(id.guide_frag) as GuideFragment)
+                .commit()
 
             if (savedInstanceState == null) {
                 getStartFragment()
@@ -118,7 +120,12 @@ class MainActivity : AppCompatActivity(),
      */
 
     override fun importVideo() {
-        intentPickMedia()
+        if (hasPermissions) {
+            intentPickMedia()
+        } else {
+            Toast.makeText(this,this.resources.getString(R.string.permission_toast), Toast.LENGTH_SHORT).show()
+            checkPermissions()
+        }
     }
 
     override fun startTiming() {
@@ -326,7 +333,7 @@ class MainActivity : AppCompatActivity(),
      */
 
     override fun onPause() {
-        if (!isOnboardingOn&&exoPlayer.isPlaying) {
+        if (!isOnboardingOn && exoPlayer.isPlaying) {
             exoPlayer.stop()
             exoPlayer.release()
         }
@@ -345,16 +352,14 @@ class MainActivity : AppCompatActivity(),
             super.onBackPressed()
         } else {
             val dialogBuilder = AlertDialog.Builder(this)
-                .setMessage("Are you sure you want to quit?")
+                .setMessage(this.resources.getString(R.string.dialog_quit))
                 .setPositiveButton(
                     "Yes"
                 ) { _, _ -> super.onBackPressed() }
                 .setNegativeButton("No", null)
                 .setCancelable(true)
-
             dialogBuilder.show()
         }
-
     }
 
     /**
@@ -362,12 +367,12 @@ class MainActivity : AppCompatActivity(),
      */
 
     private fun areFragmentsInBackstack(): Boolean {
-        return supportFragmentManager.backStackEntryCount>0
+        return supportFragmentManager.backStackEntryCount > 0
     }
 
     private fun updateLapsText(newText: String, isReset: Boolean) {
         if (isReset) {
-           timePointsDisplay.text = newText
+            timePointsDisplay.text = newText
             return
         } else {
             var timePointsDisplayText = timePointsDisplay.text.toString()
