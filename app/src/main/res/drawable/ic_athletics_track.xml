@@ -3,20 +3,7 @@
     android:height="128dp"
     android:viewportWidth="512.065"
     android:viewportHeight="512.065">
-<!--  <path-->
-<!--      android:pathData="m367.002,286.035h30v89.693h-30z"-->
-<!--      android:fillColor="#61729b"/>-->
-<!--  <path-->
-<!--      android:pathData="m367.002,286.035h30v89.693h-30z"-->
-<!--      android:fillColor="#47568c"/>-->
-<!--  <path-->
-<!--      android:pathData="m478.002,211.031h-111v90.004h111l-22.501,-45.002z"-->
-<!--      android:fillColor="#ff6c6c"/>-->
-<!--  <path-->
-<!--      android:pathData="m455.501,256.033 l22.501,-45.002h-55.5v90.004h55.5z"-->
-<!--      android:fillColor="#ff3943"/>-->
-
-
+  
   <path
       android:pathData="m255.913,136.338h256.095v-121.219h-256.095c-133.052,0 -240.913,107.861 -240.913,240.913 0,133.053 107.861,240.913 240.913,240.913h256.096v-121.217h-256.096c-66.106,0 -119.695,-53.589 -119.695,-119.695 0.001,-66.106 53.59,-119.695 119.695,-119.695z"
       android:fillColor="#29D2FC"/>
