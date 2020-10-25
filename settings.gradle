@@ -1,5 +1,5 @@
 include ':app'
-rootProject.name = "TimeStopper"
+rootProject.name = "TrackTimer"
 
 gradle.ext.exoplayerRoot = 'D:\\Apps_projects\\ExoPlayer'
 gradle.ext.exoplayerModulePrefix = 'exoplayer-'
