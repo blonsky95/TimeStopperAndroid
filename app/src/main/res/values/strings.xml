@@ -22,6 +22,10 @@
     <string name="guide_clear_timing" tools:ignore="MissingTranslation">Resets and gets rid of the times display</string>
     <string name="guide_return_button" tools:ignore="MissingTranslation">return</string>
     <string name="preference_first_time_key" tools:ignore="MissingTranslation">preference_first_time_user</string>
+    <string name="preference_day_of_year_last_trial" tools:ignore="MissingTranslation">preference_day_of_year_last_trial</string>
+    <string name="preference_count_video_timing_trial" tools:ignore="MissingTranslation">preference_count_video_timing_trial</string>
+    <string name="preference_is_trial_on" tools:ignore="MissingTranslation">preference__is_trial_on</string>
+
     <string name="next_button" tools:ignore="MissingTranslation">Next</string>
     <string name="timestopper_features" tools:ignore="MissingTranslation">Features</string>
     <string name="content_desc_button_forward" tools:ignore="MissingTranslation">Button forward</string>

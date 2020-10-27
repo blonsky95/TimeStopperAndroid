@@ -21,6 +21,7 @@ import com.google.android.exoplayer2.util.Util
 import com.tatoeapps.tracktimer.R
 import timber.log.Timber
 import java.text.DecimalFormat
+import java.util.*
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -35,24 +36,123 @@ object Utils {
         return df.format(startTiming)
     }
 
-    fun pairFloatToLapString(pair: Pair<Float,Float>) :String{
+    fun pairFloatToLapString(pair: Pair<Float, Float>): String {
         return "\n${df.format(pair.first)} (${df.format(pair.second)})"
     }
 
     /**
+     * Timing feature & Trial mode stuff
+     */
+
+
+    const val numberVideosTimingFree = 2
+
+    fun canStartTimingTrial(context: Context): Boolean {
+        val dayOfYear = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
+        if (dayOfYear == getPrefDayOfYearTrial(context)) {
+            //so the user has done at least one video if the dates are matching
+            if (getPrefCountOfFreeTimingVideosInTrial(context) >= numberVideosTimingFree) {
+                //too many videos for free trial, has expired
+                //expired
+                return false
+            }
+        }
+        return true
+    }
+
+
+    /**
      * SHARED PREFS STUFF
      */
+
+    fun isUserSubscribed(context: Context): Boolean {
+        //todo ajam
+        return false
+    }
+
+    fun getIsTimingTrialActive(context: Context): Boolean {
+        val sharedPref = context.getSharedPreferences(
+            context.getString(R.string.preference_is_trial_on), Context.MODE_PRIVATE
+        )
+        val defaultValue = false
+        return sharedPref.getBoolean(
+            context.getString(R.string.preference_is_trial_on),
+            defaultValue
+        )
+    }
+
+    fun updateIsTimingTrialActive(context: Context, isActive:Boolean) {
+        val sharedPref = context.getSharedPreferences(
+            context.getString(R.string.preference_is_trial_on), Context.MODE_PRIVATE
+        )
+        with(sharedPref.edit()) {
+            putBoolean(context.getString(R.string.preference_is_trial_on), isActive)
+            apply()
+        }
+    }
+
+     fun getPrefDayOfYearTrial(context: Context): Int {
+        val sharedPref = context.getSharedPreferences(
+            context.getString(R.string.preference_day_of_year_last_trial), Context.MODE_PRIVATE
+        )
+        val defaultValue = -1
+        return sharedPref.getInt(
+            context.getString(R.string.preference_day_of_year_last_trial),
+            defaultValue
+        )
+    }
+
+    fun updatePrefDayOfYearTrial(context: Context, int: Int) {
+        val sharedPref = context.getSharedPreferences(
+            context.getString(R.string.preference_day_of_year_last_trial), Context.MODE_PRIVATE
+        )
+        with(sharedPref.edit()) {
+            putInt(context.getString(R.string.preference_day_of_year_last_trial), int)
+            apply()
+        }
+    }
+
+     fun getPrefCountOfFreeTimingVideosInTrial(context: Context): Int {
+        val sharedPref = context.getSharedPreferences(
+            context.getString(R.string.preference_count_video_timing_trial), Context.MODE_PRIVATE
+        )
+        val defaultValue = 0
+        return sharedPref.getInt(
+            context.getString(R.string.preference_count_video_timing_trial),
+            defaultValue
+        )
+    }
+
+    fun updatePrefCountOfFreeTimingVideosInTrial(
+        context: Context,
+        countBeforeUpdate: Int,
+        resetCounter: Boolean = false
+    ) {
+        val sharedPref = context.getSharedPreferences(
+            context.getString(R.string.preference_count_video_timing_trial), Context.MODE_PRIVATE
+        )
+        var newCount = countBeforeUpdate+1
+        if (resetCounter) {
+            newCount = 0
+        }
+        with(sharedPref.edit()) {
+            putInt(context.getString(R.string.preference_count_video_timing_trial), newCount)
+            apply()
+        }
+    }
 
     fun isUserFirstTimer(context: Context): Boolean {
         val sharedPref = context.getSharedPreferences(
             context.getString(R.string.preference_first_time_key), Context.MODE_PRIVATE
         )
         val defaultValue = true
-        return sharedPref.getBoolean(context.getString(R.string.preference_first_time_key), defaultValue)
-//        return true
+        return sharedPref.getBoolean(
+            context.getString(R.string.preference_first_time_key),
+            defaultValue
+        )
     }
 
-    fun updateUserFirstTimer(context: Context, isFirstTime:Boolean) {
+    fun updateUserFirstTimer(context: Context, isFirstTime: Boolean) {
         val sharedPref = context.getSharedPreferences(
             context.getString(R.string.preference_first_time_key), Context.MODE_PRIVATE
         )
@@ -129,14 +229,16 @@ object Utils {
         val frameJumpInMs = ceil(1000 / videoFrameRate).toLong()
 
         return if (needsCorrection) {
-            currentExoPlayerPosition + frameJumpInMs*correctionNextFrameForward
+            currentExoPlayerPosition + frameJumpInMs * correctionNextFrameForward
         } else {
             currentExoPlayerPosition + frameJumpInMs
         }
     }
 
-    fun getPositionOfPreviousFrame(currentExoPlayerPosition: Long,
-                                   videoFrameRate: Float): Long {
+    fun getPositionOfPreviousFrame(
+        currentExoPlayerPosition: Long,
+        videoFrameRate: Float
+    ): Long {
         val frameJumpInMs = ceil(1000 / videoFrameRate).toLong()
         return currentExoPlayerPosition - frameJumpInMs
     }

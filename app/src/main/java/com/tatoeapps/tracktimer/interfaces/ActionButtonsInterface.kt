@@ -5,7 +5,7 @@ interface ActionButtonsInterface {
 
     }
 
-    fun startTiming() {
+    fun startTimingFeature() {
 
     }
 

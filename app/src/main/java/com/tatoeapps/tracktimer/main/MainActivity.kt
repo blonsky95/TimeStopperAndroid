@@ -39,6 +39,7 @@ import com.tatoeapps.tracktimer.utils.Utils
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.exo_player_control_view.*
 import timber.log.Timber
+import java.util.*
 
 
 class MainActivity : AppCompatActivity(),
@@ -97,6 +98,20 @@ class MainActivity : AppCompatActivity(),
     }
 
     /**
+     * Trial stuff
+     */
+
+
+    private fun updateFreeTrialInfo() {
+        //if trial was being used update count and date in which it happened, and set the trial isActive variable to false
+        if (Utils.getIsTimingTrialActive(this)) {
+            Utils.updatePrefCountOfFreeTimingVideosInTrial(this, Utils.getPrefCountOfFreeTimingVideosInTrial(this))
+            Utils.updatePrefDayOfYearTrial(this,Calendar.getInstance().get(Calendar.DAY_OF_YEAR))
+            Utils.updateIsTimingTrialActive(this, false)
+        }
+    }
+
+    /**
      * Guide interface
      */
 
@@ -128,7 +143,49 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    override fun startTiming() {
+    override fun startTimingFeature() {
+        if (Utils.getIsTimingTrialActive(this)) {
+            //user has already started the trial, so its in the same video as the one he started it with or has not exceeded count
+            startTiming()
+        } else {
+            if (Utils.canStartTimingTrial(this)) {
+                //starts the trial - put dialog saying you are starting trial
+                val alertDialogBuilder: AlertDialog.Builder = AlertDialog.Builder(this)
+                alertDialogBuilder.setMessage("Free version will only allow ${Utils.numberVideosTimingFree} videos to be timed per day," +
+                        " your count is: ${Utils.getPrefCountOfFreeTimingVideosInTrial(this)}, continue?")
+                alertDialogBuilder.setCancelable(true)
+
+                alertDialogBuilder.setPositiveButton(
+                    getString(android.R.string.ok)
+                ) { _, _ ->
+                    Utils.updateIsTimingTrialActive(this,true)
+                    startTiming()
+                }
+
+                val alertDialog: AlertDialog = alertDialogBuilder.create()
+                alertDialog.show()
+
+            } else {
+                //expired - put dialog saying you are expired - get premium or wait one day
+                val alertDialogBuilder: AlertDialog.Builder = AlertDialog.Builder(this)
+                alertDialogBuilder.setMessage("You have used your free trial today, get suscription?")
+                alertDialogBuilder.setCancelable(true)
+
+                alertDialogBuilder.setPositiveButton(
+                    getString(android.R.string.ok)
+                ) { _, _ ->
+                    //show purchase stuff
+                    Toast.makeText(this,"Purchases display", Toast.LENGTH_SHORT).show()
+                }
+
+                val alertDialog: AlertDialog = alertDialogBuilder.create()
+                alertDialog.show()
+            }
+
+        }
+    }
+
+    fun startTiming() {
         updateTimeInfoVisibility(true)
         updateLapsText(
             Utils.floatToStartString(timeSplitsController.startTiming(exoPlayer.currentPosition)),
@@ -181,6 +238,11 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+
+        //if user has succesfully changed clip, check if the trial was active to count that video as used
+        updateFreeTrialInfo()
+
+
         if (resultCode == RESULT_OK) {
             //UI
             hideStartFragment()
@@ -328,11 +390,10 @@ class MainActivity : AppCompatActivity(),
         hasVideo = true
     }
 
-    /**
-     * LIFECYCLE STUFF
-     */
-
     override fun onPause() {
+//        if (isFinishing) {
+//            updateFreeTrialInfo()
+//        }
         if (!isOnboardingOn && exoPlayer.isPlaying) {
             exoPlayer.stop()
             exoPlayer.release()
