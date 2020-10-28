@@ -1,5 +1,6 @@
 package com.tatoeapps.tracktimer.main
 
+import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -19,8 +20,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ViewModelProviders
+import com.android.billingclient.api.SkuDetails
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ui.DefaultTimeBar
+import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.video.VideoListener
 import com.otaliastudios.zoom.ZoomSurfaceView
 import com.tatoeapps.tracktimer.R
@@ -34,8 +39,11 @@ import com.tatoeapps.tracktimer.fragments.StartFragment
 import com.tatoeapps.tracktimer.interfaces.ActionButtonsInterface
 import com.tatoeapps.tracktimer.interfaces.GuideInterface
 import com.tatoeapps.tracktimer.interfaces.SpeedSliderInterface
+import com.tatoeapps.tracktimer.utils.BillingClientLifecycle
+import com.tatoeapps.tracktimer.utils.DialogsCreatorObject
 import com.tatoeapps.tracktimer.utils.TimeSplitsController
 import com.tatoeapps.tracktimer.utils.Utils
+import com.tatoeapps.tracktimer.viewmodel.MainViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.exo_player_control_view.*
 import timber.log.Timber
@@ -43,6 +51,7 @@ import java.util.*
 
 
 class MainActivity : AppCompatActivity(),
+    LifecycleOwner,
     ActionButtonsInterface,
     SpeedSliderInterface,
     GuideInterface {
@@ -50,7 +59,11 @@ class MainActivity : AppCompatActivity(),
     private lateinit var mDetector: GestureDetectorCompat
 
     lateinit var exoPlayer: SimpleExoPlayer
-    private lateinit var dataSourceFactory: com.google.android.exoplayer2.upstream.DataSource.Factory
+    private lateinit var dataSourceFactory: DataSource.Factory
+    lateinit var mainViewModel: MainViewModel
+
+    //class that does all the billing - google pay subscriptions and related
+    private lateinit var billingClientLifecycle: BillingClientLifecycle
 
     private var hasPermissions = false
     private val PERMISSION_REQUEST_CODE = 123
@@ -71,6 +84,9 @@ class MainActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        billingClientLifecycle = BillingClientLifecycle.getInstance(application, lifecycle)
+        mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
         if (Utils.isUserFirstTimer(this)) {
             isOnboardingOn = true
@@ -94,19 +110,99 @@ class MainActivity : AppCompatActivity(),
             setUpPlayer()
             hideBuffering()
             setUserScreenTapListener()
+            addObservers()
         }
     }
 
+
     /**
-     * Trial stuff
+     * Purchase subscription
      */
 
+    //dialog window which pops up while waiting for a connection to google pay, its
+    // not local because to dismiss its called from functions in other scopes
+    private var loadingAlertDialog: AlertDialog? = null
+
+    private fun addObservers() {
+
+        //when this value is triggered - a subscription query has been made and results are brought back
+        billingClientLifecycle.skusWithSkuDetails.observe(
+            this,
+            androidx.lifecycle.Observer<Map<String, SkuDetails>> { list: Map<String, SkuDetails> ->
+                //first, gets rid of the loading dialog window
+                mainViewModel.isConnectingToGooglePlay.postValue(false)
+
+                val dialogWindowInterface =
+                    object : DialogsCreatorObject.DialogWindowInterface {
+                        override fun onSubscribeClicked() {
+                            //todo continue here
+                            Toast.makeText(
+                                applicationContext,
+                                "Proceed purchase",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+
+                val alertDialog: android.app.AlertDialog =
+                    DialogsCreatorObject.getSubscriptionsDialog(this, list, dialogWindowInterface)
+                alertDialog.show()
+            })
+
+        //when this value is triggered - if true, it displays the loading (connecting to google pay) dialog, if false, it dismisses it
+        //this dialog window is not cancelable, but has a CANCEL button, which will kill the google pay connection and remove the loading screen
+        mainViewModel.isConnectingToGooglePlay.observe(
+            this,
+            androidx.lifecycle.Observer<Boolean> { isConnecting ->
+                if (!isConnecting) {
+                    loadingAlertDialog?.dismiss()
+                } else {
+                    val dialogWindowInterface =
+                        object : DialogsCreatorObject.DialogWindowInterface {
+                            override fun onCancelButton() {
+                                billingClientLifecycle.destroy()
+                                mainViewModel.isConnectingToGooglePlay.postValue(false)
+                            }
+                        }
+
+                    loadingAlertDialog =
+                        DialogsCreatorObject.getLoadingDialog(this, dialogWindowInterface)
+                    loadingAlertDialog!!.show()
+                }
+
+            }
+        )
+
+    }
+
+    private fun getSubscriptionDialog() {
+        //trigger the loading window as
+        mainViewModel.isConnectingToGooglePlay.postValue(true)
+        //it starts the query for purchases, which when retrieved will hide the window and show the available products
+        billingClientLifecycle.create()
+    }
+
+
+    /**
+     * Trial stuff
+     *
+     * The trial atm works with a 1 time per day timing feature use. To make it work there is 3 shared prefs values
+     * 1. The date of last time timing was used
+     * 2. Count of videos used (in one day)
+     * 3. If the trial is active (in case user closes app while using timing and reopens the app, the pref would store this and it wouldnt reset)
+     *
+     * When users picks media it triggers the check - if pref 3 isnt active then nothing, else, user quit the app while it was open,
+     * in which case pref 2 is increased 1, and pref 1 too, lastly pref 3 is reset to non active
+     */
 
     private fun updateFreeTrialInfo() {
         //if trial was being used update count and date in which it happened, and set the trial isActive variable to false
         if (Utils.getIsTimingTrialActive(this)) {
-            Utils.updatePrefCountOfFreeTimingVideosInTrial(this, Utils.getPrefCountOfFreeTimingVideosInTrial(this))
-            Utils.updatePrefDayOfYearTrial(this,Calendar.getInstance().get(Calendar.DAY_OF_YEAR))
+            Utils.updatePrefCountOfFreeTimingVideosInTrial(
+                this,
+                Utils.getPrefCountOfFreeTimingVideosInTrial(this)
+            )
+            Utils.updatePrefDayOfYearTrial(this, Calendar.getInstance().get(Calendar.DAY_OF_YEAR))
             Utils.updateIsTimingTrialActive(this, false)
         }
     }
@@ -131,17 +227,24 @@ class MainActivity : AppCompatActivity(),
     }
 
     /**
-     * Action buttons interface
+     * Action buttons interface && trial control logic
+     *
+     * In the startTimingFeature the logic to check the state of the free timing feature trial is shown
      */
 
     override fun importVideo() {
         if (hasPermissions) {
             intentPickMedia()
         } else {
-            Toast.makeText(this,this.resources.getString(R.string.permission_toast), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                this.resources.getString(R.string.permission_toast),
+                Toast.LENGTH_SHORT
+            ).show()
             checkPermissions()
         }
     }
+
 
     override fun startTimingFeature() {
         if (Utils.getIsTimingTrialActive(this)) {
@@ -149,36 +252,42 @@ class MainActivity : AppCompatActivity(),
             startTiming()
         } else {
             if (Utils.canStartTimingTrial(this)) {
+
                 //starts the trial - put dialog saying you are starting trial
-                val alertDialogBuilder: AlertDialog.Builder = AlertDialog.Builder(this)
-                alertDialogBuilder.setMessage("Free version will only allow ${Utils.numberVideosTimingFree} videos to be timed per day," +
-                        " your count is: ${Utils.getPrefCountOfFreeTimingVideosInTrial(this)}, continue?")
-                alertDialogBuilder.setCancelable(true)
+                val dialogPositiveNegativeInterface =
+                    object : DialogsCreatorObject.DialogWindowInterface {
+                        override fun onPositiveButton() {
+                            //its ok to use application context here because its a shared prefs operation - doesnt care much about activity lifecycle
+                            Utils.updateIsTimingTrialActive(applicationContext, true)
+                            startTiming()
+                        }
 
-                alertDialogBuilder.setPositiveButton(
-                    getString(android.R.string.ok)
-                ) { _, _ ->
-                    Utils.updateIsTimingTrialActive(this,true)
-                    startTiming()
-                }
+                        override fun onNegativeButton() {
+                            getSubscriptionDialog()
+                        }
+                    }
 
-                val alertDialog: AlertDialog = alertDialogBuilder.create()
+                val alertDialog: AlertDialog =
+                    DialogsCreatorObject.getTrialStartDialog(this, dialogPositiveNegativeInterface)
                 alertDialog.show()
 
             } else {
+
                 //expired - put dialog saying you are expired - get premium or wait one day
-                val alertDialogBuilder: AlertDialog.Builder = AlertDialog.Builder(this)
-                alertDialogBuilder.setMessage("You have used your free trial today, get suscription?")
-                alertDialogBuilder.setCancelable(true)
+                val dialogPositiveNegativeInterface =
+                    object : DialogsCreatorObject.DialogWindowInterface {
+                        override fun onPositiveButton() {
+                            getSubscriptionDialog()
+                        }
 
-                alertDialogBuilder.setPositiveButton(
-                    getString(android.R.string.ok)
-                ) { _, _ ->
-                    //show purchase stuff
-                    Toast.makeText(this,"Purchases display", Toast.LENGTH_SHORT).show()
-                }
+                        override fun onNegativeButton() {
+                        }
+                    }
 
-                val alertDialog: AlertDialog = alertDialogBuilder.create()
+                val alertDialog: AlertDialog = DialogsCreatorObject.getTrialExpiredDialog(
+                    this,
+                    dialogPositiveNegativeInterface
+                )
                 alertDialog.show()
             }
 
@@ -241,7 +350,6 @@ class MainActivity : AppCompatActivity(),
 
         //if user has succesfully changed clip, check if the trial was active to count that video as used
         updateFreeTrialInfo()
-
 
         if (resultCode == RESULT_OK) {
             //UI
@@ -558,7 +666,7 @@ class MainActivity : AppCompatActivity(),
     private fun checkPermissions() {
         if (ContextCompat.checkSelfPermission(
                 this,
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
             )
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -566,9 +674,9 @@ class MainActivity : AppCompatActivity(),
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    android.Manifest.permission.WAKE_LOCK,
-                    android.Manifest.permission.READ_EXTERNAL_STORAGE
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.WAKE_LOCK,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
                 ),
                 PERMISSION_REQUEST_CODE
             )

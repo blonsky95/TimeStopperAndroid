@@ -1,11 +1,15 @@
 package com.tatoeapps.tracktimer.utils
 
+import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
+import android.content.DialogInterface
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
 import android.os.Handler
+import android.view.View
+import com.android.billingclient.api.SkuDetails
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Renderer
@@ -19,6 +23,8 @@ import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import com.tatoeapps.tracktimer.R
+import com.tatoeapps.tracktimer.main.MainActivity
+import kotlinx.android.synthetic.main.dialog_buy_subscription.view.*
 import timber.log.Timber
 import java.text.DecimalFormat
 import java.util.*
@@ -45,7 +51,7 @@ object Utils {
      */
 
 
-    const val numberVideosTimingFree = 2
+    const val numberVideosTimingFree = 1
 
     fun canStartTimingTrial(context: Context): Boolean {
         val dayOfYear = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
@@ -59,6 +65,9 @@ object Utils {
         }
         return true
     }
+
+
+
 
 
     /**
@@ -242,6 +251,7 @@ object Utils {
         val frameJumpInMs = ceil(1000 / videoFrameRate).toLong()
         return currentExoPlayerPosition - frameJumpInMs
     }
+
 
     private class MyDefaultRendererFactory(context: Context) : DefaultRenderersFactory(context) {
         override fun buildAudioRenderers(

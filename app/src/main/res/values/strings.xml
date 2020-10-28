@@ -37,4 +37,18 @@
     <string name="dialog_quit" tools:ignore="MissingTranslation">Are you sure you want to quit?</string>
     <string name="permission_toast" tools:ignore="MissingTranslation">Please accept storage access permissions to select videos</string>
 
+    <string name="no_subscriptions_available" tools:ignore="MissingTranslation">No subscriptions available</string>
+    <string name="go_unlimited" tools:ignore="MissingTranslation">GO UNLIMITED</string>
+    <string name="yes_string" tools:ignore="MissingTranslation">Yes</string>
+    <string name="yes_string_exclamation" tools:ignore="MissingTranslation">YES!</string>
+    <string name="next_time" tools:ignore="MissingTranslation">Next time</string>
+    <string name="get_subscription_prompt" tools:ignore="MissingTranslation">You have used your free trial today, get unlimited use through a subscription?</string>
+    <string name="trial_prompt_segment_1" tools:ignore="MissingTranslation">Free version will only allow</string>
+    <string name="trial_prompt_segment_2" tools:ignore="MissingTranslation">videos to be timed per day,</string>
+    <string name="trial_prompt_segment_3" tools:ignore="MissingTranslation">your count is:</string>
+    <string name="trial_prompt_segment_4" tools:ignore="MissingTranslation">, continue?</string>
+
+
+
+
 </resources>
