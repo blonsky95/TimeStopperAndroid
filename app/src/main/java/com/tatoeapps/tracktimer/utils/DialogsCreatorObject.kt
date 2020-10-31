@@ -26,7 +26,7 @@ object DialogsCreatorObject {
         }
     }
 
-    fun getSubscriptionsDialog(
+    fun getUnsubscribedDialog(
         mainActivity: MainActivity,
         list: Map<String, SkuDetails>,
         dialogWindowInterface: DialogWindowInterface
@@ -48,8 +48,28 @@ object DialogsCreatorObject {
                 dialogCustomView.subscribe_button.setOnClickListener {
                     dialogWindowInterface.onSubscribeClicked()
                 }
+
             }
         }
+        builder.setView(dialogCustomView)
+        return builder.create()
+    }
+
+    fun getSubscribedDialog(
+        mainActivity: MainActivity): AlertDialog {
+        val builder = AlertDialog.Builder(mainActivity)
+        // Get the layout inflater
+        val dialogCustomView =
+            mainActivity.layoutInflater.inflate(R.layout.dialog_buy_subscription, null)
+
+        dialogCustomView.available_subscriptions.visibility=View.GONE
+        dialogCustomView.product_title.text = "You are already subscribed"
+        dialogCustomView.product_description.text = "To cancel your suscription, go to Play Store," +
+                " and press subscriptions on the side menu, and then cancel subscription for TrackTimer\n\nThis will cancel your next" +
+                " (or first if within free trial period) payment but it wont serve as a refund"
+        dialogCustomView.product_price.visibility=View.GONE
+        dialogCustomView.subscribe_button.text="SUBSCRIBED"
+
         builder.setView(dialogCustomView)
         return builder.create()
     }

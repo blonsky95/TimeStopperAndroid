@@ -1,15 +1,11 @@
 package com.tatoeapps.tracktimer.utils
 
-import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
-import android.content.DialogInterface
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
 import android.os.Handler
-import android.view.View
-import com.android.billingclient.api.SkuDetails
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Renderer
@@ -23,8 +19,6 @@ import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import com.tatoeapps.tracktimer.R
-import com.tatoeapps.tracktimer.main.MainActivity
-import kotlinx.android.synthetic.main.dialog_buy_subscription.view.*
 import timber.log.Timber
 import java.text.DecimalFormat
 import java.util.*
@@ -62,6 +56,9 @@ object Utils {
                 //expired
                 return false
             }
+        } else {
+            //its a different day from the last use, so reset count to 0, and return true later
+            updatePrefCountOfFreeTimingVideosInTrial(context, getPrefCountOfFreeTimingVideosInTrial(context),true)
         }
         return true
     }
@@ -75,8 +72,24 @@ object Utils {
      */
 
     fun isUserSubscribed(context: Context): Boolean {
-        //todo ajam
-        return false
+        val sharedPref = context.getSharedPreferences(
+            context.getString(R.string.preference_is_subscribed), Context.MODE_PRIVATE
+        )
+        val defaultValue = false
+        return sharedPref.getBoolean(
+            context.getString(R.string.preference_is_subscribed),
+            defaultValue
+        )
+    }
+
+    fun updateIsUserSubscribed(context: Context, isSubscribed:Boolean) {
+        val sharedPref = context.getSharedPreferences(
+            context.getString(R.string.preference_is_subscribed), Context.MODE_PRIVATE
+        )
+        with(sharedPref.edit()) {
+            putBoolean(context.getString(R.string.preference_is_subscribed), isSubscribed)
+            apply()
+        }
     }
 
     fun getIsTimingTrialActive(context: Context): Boolean {

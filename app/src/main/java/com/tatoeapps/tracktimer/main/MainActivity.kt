@@ -22,6 +22,7 @@ import androidx.core.view.GestureDetectorCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProviders
+import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.SkuDetails
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ui.DefaultTimeBar
@@ -85,7 +86,7 @@ class MainActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        billingClientLifecycle = BillingClientLifecycle.getInstance(application, lifecycle)
+        billingClientLifecycle = BillingClientLifecycle.getInstance(application, this, lifecycle)
         mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
         if (Utils.isUserFirstTimer(this)) {
@@ -131,21 +132,31 @@ class MainActivity : AppCompatActivity(),
             androidx.lifecycle.Observer<Map<String, SkuDetails>> { list: Map<String, SkuDetails> ->
                 //first, gets rid of the loading dialog window
                 mainViewModel.isConnectingToGooglePlay.postValue(false)
+                val skuDetails = list[BillingClientLifecycle.subscriptionSku]
 
                 val dialogWindowInterface =
                     object : DialogsCreatorObject.DialogWindowInterface {
                         override fun onSubscribeClicked() {
-                            //todo continue here
-                            Toast.makeText(
-                                applicationContext,
-                                "Proceed purchase",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            if (skuDetails!=null) {
+                                val flowParams = BillingFlowParams.newBuilder().setSkuDetails(skuDetails).build()
+                                val responseCode = billingClientLifecycle.startLaunchBillingFlow(flowParams)
+                            }
                         }
                     }
 
                 val alertDialog: android.app.AlertDialog =
-                    DialogsCreatorObject.getSubscriptionsDialog(this, list, dialogWindowInterface)
+                    DialogsCreatorObject.getUnsubscribedDialog(this, list, dialogWindowInterface)
+                alertDialog.show()
+            })
+
+        billingClientLifecycle.subscriptionActive.observe(
+            this,
+            androidx.lifecycle.Observer<Boolean> { subscriptionActive ->
+
+                mainViewModel.isConnectingToGooglePlay.postValue(false)
+
+                val alertDialog: android.app.AlertDialog =
+                    DialogsCreatorObject.getSubscribedDialog(this)
                 alertDialog.show()
             })
 
@@ -247,7 +258,7 @@ class MainActivity : AppCompatActivity(),
 
 
     override fun startTimingFeature() {
-        if (Utils.getIsTimingTrialActive(this)) {
+        if (Utils.isUserSubscribed(this) || Utils.getIsTimingTrialActive(this)) {
             //user has already started the trial, so its in the same video as the one he started it with or has not exceeded count
             startTiming()
         } else {
@@ -328,6 +339,10 @@ class MainActivity : AppCompatActivity(),
 
     override fun helpButtonPressed() {
         showGuideWindow()
+    }
+
+    override fun subPressed() {
+        getSubscriptionDialog()
     }
 
     /**

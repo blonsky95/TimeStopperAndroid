@@ -42,6 +42,9 @@ class ActionButtonsFragment : Fragment() {
         view.get_help_btn.setOnClickListener {
             actionButtonsInterface.helpButtonPressed()
         }
+        view.sub_btn.setOnClickListener {
+            actionButtonsInterface.subPressed()
+        }
 
     }
 

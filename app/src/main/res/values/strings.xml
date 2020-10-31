@@ -15,7 +15,7 @@
     <string name="guide_fast_forward_video" tools:ignore="MissingTranslation">Fast forward up to 5 seconds of video</string>
     <string name="guide_previous_frame" tools:ignore="MissingTranslation">If video is paused, goes to previous frame</string>
     <string name="guide_next_frame" tools:ignore="MissingTranslation">If video is paused, goes to next frame</string>
-    <string name="guide_subtitle_2" tools:ignore="MissingTranslation">Timing controls</string>
+    <string name="guide_subtitle_2" tools:ignore="MissingTranslation">Timing</string>
     <string name="guide_start_timing" tools:ignore="MissingTranslation">Starts the timer at this precise moment</string>
     <string name="guide_lap_timing" tools:ignore="MissingTranslation">Displays the time since start/lap, as well as the split</string>
     <string name="guide_stop_timing" tools:ignore="MissingTranslation">Stops timing</string>
@@ -25,6 +25,7 @@
     <string name="preference_day_of_year_last_trial" tools:ignore="MissingTranslation">preference_day_of_year_last_trial</string>
     <string name="preference_count_video_timing_trial" tools:ignore="MissingTranslation">preference_count_video_timing_trial</string>
     <string name="preference_is_trial_on" tools:ignore="MissingTranslation">preference__is_trial_on</string>
+    <string name="preference_is_subscribed" tools:ignore="MissingTranslation">preference_is_subscribed</string>
 
     <string name="next_button" tools:ignore="MissingTranslation">Next</string>
     <string name="timestopper_features" tools:ignore="MissingTranslation">Features</string>
@@ -47,8 +48,7 @@
     <string name="trial_prompt_segment_2" tools:ignore="MissingTranslation">videos to be timed per day,</string>
     <string name="trial_prompt_segment_3" tools:ignore="MissingTranslation">your count is:</string>
     <string name="trial_prompt_segment_4" tools:ignore="MissingTranslation">, continue?</string>
-
-
+    <string name="guide_timing_sub_text" tools:ignore="MissingTranslation">For non subscribed users, timing </string>
 
 
 </resources>

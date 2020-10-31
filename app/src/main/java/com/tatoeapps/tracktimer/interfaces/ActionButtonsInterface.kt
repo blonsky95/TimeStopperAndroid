@@ -24,4 +24,8 @@ interface ActionButtonsInterface {
     fun helpButtonPressed() {
 
     }
+
+    fun subPressed() {
+
+    }
 }
