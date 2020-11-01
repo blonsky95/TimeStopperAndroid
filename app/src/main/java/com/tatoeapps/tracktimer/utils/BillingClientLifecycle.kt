@@ -10,6 +10,25 @@ import com.android.billingclient.api.*
 import com.tatoeapps.tracktimer.main.MainActivity
 import timber.log.Timber
 
+/**
+ * This class handles all the billing stuff, most of it is standard.
+ * The flow of events is:
+ * - class is created, connection is made
+ * - queries existing purchases (aka is user subscribed)
+ * - if there is a purchase (user subscribed), there is no need to query sku details (available subscriptions)
+ * - if no purchases, then query skudetails and display to user the subscription
+ * - launch billing flow if user buys
+ * - receive purchase object, grant subscription, aknowledge the purchase
+ *
+ * However, the class triggers UI changes by posting livedata values. This responds to users attempting
+ * to subscribe or pressing the subscribe button
+ * Nevertheless, we need the class to check if users have cancelled subscription, to cancel the subscription after the
+ * period, in this case, the existing purchases are queried, and if nothing is found then subscription pref
+ * is updated to false.
+ *
+ * Here comes variable mCheckingSubscriptionState - if true - its just a check - and no live data will
+ * be updated - but the value of subscribed in shared prefs will
+ **/
 class BillingClientLifecycle(
     val app: Application,
     val mainActivity: MainActivity,
@@ -47,6 +66,8 @@ class BillingClientLifecycle(
     val skusWithSkuDetails = MutableLiveData<Map<String, SkuDetails>>()
     val subscriptionActive = MutableLiveData<Boolean>()
 
+    var mChekingSubscriptionState = false
+
     override fun onPurchasesUpdated(
         billingResult: BillingResult,
         purchases: MutableList<Purchase>?
@@ -70,7 +91,6 @@ class BillingClientLifecycle(
         if (purchase.purchaseState === Purchase.PurchaseState.PURCHASED) {
             //grant entitlement of purchase here
             Utils.updateIsUserSubscribed(mainActivity, true)
-
             if (!purchase.isAcknowledged) {
                 val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
                     .setPurchaseToken(purchase.purchaseToken)
@@ -81,7 +101,9 @@ class BillingClientLifecycle(
                     Timber.d("acknowledgePurchase: $responseCode $debugMessage")
                 }
             }
-            subscriptionActive.postValue(true)
+            if (!mChekingSubscriptionState){
+                subscriptionActive.postValue(true)
+            }
         }
     }
 
@@ -144,7 +166,8 @@ class BillingClientLifecycle(
     }
 
     //    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
-    fun create() {
+    fun create(checkingSubscriptionState: Boolean = false) {
+        mChekingSubscriptionState=checkingSubscriptionState
         billingClient = BillingClient.newBuilder(app.applicationContext)
             .setListener(this)
             .enablePendingPurchases()
@@ -197,7 +220,12 @@ class BillingClientLifecycle(
                 handlePurchase(purchase)
             }
         } else {
-            querySkuDetails()
+            if (mChekingSubscriptionState) {
+                Utils.updateIsUserSubscribed(mainActivity,false)
+            } else {
+                querySkuDetails()
+            }
+
         }
     }
 }

@@ -87,6 +87,8 @@ class MainActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
 
         billingClientLifecycle = BillingClientLifecycle.getInstance(application, this, lifecycle)
+        billingClientLifecycle.create(true)
+
         mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
         if (Utils.isUserFirstTimer(this)) {
@@ -123,6 +125,8 @@ class MainActivity : AppCompatActivity(),
     //dialog window which pops up while waiting for a connection to google pay, its
     // not local because to dismiss its called from functions in other scopes
     private var loadingAlertDialog: AlertDialog? = null
+    private var subscribedAlertDialog: android.app.AlertDialog? = null
+    private var unsubscribedAlertDialog: android.app.AlertDialog? = null
 
     private fun addObservers() {
 
@@ -144,9 +148,10 @@ class MainActivity : AppCompatActivity(),
                         }
                     }
 
-                val alertDialog: android.app.AlertDialog =
+                unsubscribedAlertDialog =
                     DialogsCreatorObject.getUnsubscribedDialog(this, list, dialogWindowInterface)
-                alertDialog.show()
+                unsubscribedAlertDialog!!.show()
+                subscribedAlertDialog?.dismiss()
             })
 
         billingClientLifecycle.subscriptionActive.observe(
@@ -155,9 +160,10 @@ class MainActivity : AppCompatActivity(),
 
                 mainViewModel.isConnectingToGooglePlay.postValue(false)
 
-                val alertDialog: android.app.AlertDialog =
+                subscribedAlertDialog =
                     DialogsCreatorObject.getSubscribedDialog(this)
-                alertDialog.show()
+                subscribedAlertDialog!!.show()
+                unsubscribedAlertDialog?.dismiss()
             })
 
         //when this value is triggered - if true, it displays the loading (connecting to google pay) dialog, if false, it dismisses it
