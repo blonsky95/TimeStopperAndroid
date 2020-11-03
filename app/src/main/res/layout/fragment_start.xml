@@ -15,11 +15,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:text="@string/tap_to_select_video"
+            android:textColor="@color/exo_white"
+            android:layout_gravity="center"
+            android:gravity="center"/>
+
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:src="@drawable/ic_add_video_icon"/>
+            android:src="@drawable/ic_add_video_new"/>
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

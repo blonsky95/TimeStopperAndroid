@@ -57,6 +57,7 @@
     <string name="cancel_subscription_info" tools:ignore="MissingTranslation">To cancel your subscription, go to Play Store Subscriptions, more info at support.google.com/googleplay/answer/7018481 \n\nThis will cancel your next (or first ever, if in 7 day trial period) payment but it wont work as a refund.</string>
     <string name="subscribed_text" tools:ignore="MissingTranslation">SUBSCRIBED</string>
     <string name="internet_problem_text" tools:ignore="MissingTranslation">There seems to be a problem, make sure you have Internet connection and try again</string>
+    <string name="tap_to_select_video" tools:ignore="MissingTranslation">Tap here to select a video</string>
 
 
 </resources>
