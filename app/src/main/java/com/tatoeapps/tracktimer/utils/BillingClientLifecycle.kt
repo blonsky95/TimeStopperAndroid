@@ -65,6 +65,7 @@ class BillingClientLifecycle(
     private lateinit var billingClient: BillingClient
     val skusWithSkuDetails = MutableLiveData<Map<String, SkuDetails>>()
     val subscriptionActive = MutableLiveData<Boolean>()
+    val billingClientConnectionState = MutableLiveData<Int>()
 
     var mChekingSubscriptionState = false
 
@@ -77,10 +78,10 @@ class BillingClientLifecycle(
                 handlePurchase(purchase)
             }
         } else if (billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
-            Toast.makeText(mainActivity, "User canceled buy", Toast.LENGTH_SHORT).show()
+//            Toast.makeText(mainActivity, "User canceled buy", Toast.LENGTH_SHORT).show()
         } else {
             // Handle any other error codes.
-            Toast.makeText(mainActivity, "Something canceled buy", Toast.LENGTH_SHORT).show()
+//            Toast.makeText(mainActivity, "Something canceled buy", Toast.LENGTH_SHORT).show()
 
         }
     }
@@ -108,7 +109,7 @@ class BillingClientLifecycle(
     }
 
     override fun onBillingServiceDisconnected() {
-        TODO("Not yet implemented")
+        Timber.d("Billing service disconnected")
     }
 
     override fun onBillingSetupFinished(billingResult: BillingResult) {
@@ -153,6 +154,7 @@ class BillingClientLifecycle(
             BillingClient.BillingResponseCode.ITEM_UNAVAILABLE,
             BillingClient.BillingResponseCode.DEVELOPER_ERROR,
             BillingClient.BillingResponseCode.ERROR -> {
+                billingClientConnectionState.postValue(responseCode)
                 Timber.d("onSkuDetailsResponse: $responseCode $debugMessage")
             }
             BillingClient.BillingResponseCode.USER_CANCELED,
@@ -160,6 +162,7 @@ class BillingClientLifecycle(
             BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED,
             BillingClient.BillingResponseCode.ITEM_NOT_OWNED -> {
                 // These response codes are not expected.
+                billingClientConnectionState.postValue(responseCode)
                 Timber.d("onSkuDetailsResponse: $responseCode $debugMessage")
             }
         }

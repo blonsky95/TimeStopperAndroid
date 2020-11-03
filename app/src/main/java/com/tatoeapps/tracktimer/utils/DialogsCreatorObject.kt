@@ -2,6 +2,10 @@ package com.tatoeapps.tracktimer.utils
 
 import android.app.AlertDialog
 import android.content.Context
+import android.text.SpannableString
+import android.text.method.LinkMovementMethod
+import android.text.method.MovementMethod
+import android.text.util.Linkify
 import android.view.View
 import com.android.billingclient.api.SkuDetails
 import com.tatoeapps.tracktimer.R
@@ -63,12 +67,13 @@ object DialogsCreatorObject {
             mainActivity.layoutInflater.inflate(R.layout.dialog_buy_subscription, null)
 
         dialogCustomView.available_subscriptions.visibility=View.GONE
-        dialogCustomView.product_title.text = "You are already subscribed"
-        dialogCustomView.product_description.text = "To cancel your suscription, go to Play Store," +
-                " and press subscriptions on the side menu, and then cancel subscription for TrackTimer\n\nThis will cancel your next" +
-                " (or first if within free trial period) payment but it wont serve as a refund"
+        dialogCustomView.product_title.text = mainActivity.getString(R.string.already_subscribed)
+        val spannableString = SpannableString(mainActivity.getString(R.string.cancel_subscription_info))
+        Linkify.addLinks(spannableString, Linkify.WEB_URLS)
+        dialogCustomView.product_description.text = spannableString
+        dialogCustomView.product_description.movementMethod=LinkMovementMethod.getInstance()
         dialogCustomView.product_price.visibility=View.GONE
-        dialogCustomView.subscribe_button.text="SUBSCRIBED"
+        dialogCustomView.subscribe_button.text=mainActivity.getString(R.string.subscribed_text)
 
         builder.setView(dialogCustomView)
         return builder.create()

@@ -2,6 +2,7 @@ package com.tatoeapps.tracktimer.fragments
 
 import android.content.Context
 import android.os.Bundle
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,6 +25,7 @@ class GuideFragment:Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        view.trial_subscription_text.movementMethod=LinkMovementMethod.getInstance()
         view.return_button.setOnClickListener {
             guideInterface.hideGuideFragment()
         }

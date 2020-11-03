@@ -13,6 +13,8 @@ import android.view.GestureDetector
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -143,7 +145,7 @@ class MainActivity : AppCompatActivity(),
                         override fun onSubscribeClicked() {
                             if (skuDetails!=null) {
                                 val flowParams = BillingFlowParams.newBuilder().setSkuDetails(skuDetails).build()
-                                val responseCode = billingClientLifecycle.startLaunchBillingFlow(flowParams)
+                                billingClientLifecycle.startLaunchBillingFlow(flowParams)
                             }
                         }
                     }
@@ -160,11 +162,23 @@ class MainActivity : AppCompatActivity(),
 
                 mainViewModel.isConnectingToGooglePlay.postValue(false)
 
+                //subscription active is always true as of 03/11/2020
                 subscribedAlertDialog =
                     DialogsCreatorObject.getSubscribedDialog(this)
                 subscribedAlertDialog!!.show()
                 unsubscribedAlertDialog?.dismiss()
             })
+
+        billingClientLifecycle.billingClientConnectionState.observe(
+            this,
+            androidx.lifecycle.Observer <Int>{_ ->
+                if (loadingAlertDialog!=null && loadingAlertDialog!!.isShowing) {
+                    loadingAlertDialog!!.findViewById<TextView>(id.loading_dialog_text)?.text=getString(
+                                            R.string.internet_problem_text)
+                    loadingAlertDialog!!.findViewById<ProgressBar>(id.indeterminateBar)?.visibility=View.GONE
+                }
+            }
+        )
 
         //when this value is triggered - if true, it displays the loading (connecting to google pay) dialog, if false, it dismisses it
         //this dialog window is not cancelable, but has a CANCEL button, which will kill the google pay connection and remove the loading screen
@@ -189,6 +203,7 @@ class MainActivity : AppCompatActivity(),
 
             }
         )
+
 
     }
 

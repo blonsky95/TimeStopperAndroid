@@ -32,8 +32,36 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="16dp"
             android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/title_guide4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/trial_subscriptions"
+                android:textColor="@color/exo_white"
+                android:textSize="24sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/trial_subscription_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="24dp"
+                    android:layout_weight="6"
+                    android:text="@string/subscription_explanation"
+                    android:textColor="@color/exo_white" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/title_guide2"
@@ -352,7 +380,38 @@
                     android:textColor="@color/exo_white" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/title_guide5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/support_title"
+                android:textColor="@color/exo_white"
+                android:textSize="24sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="24dp"
+                    android:layout_weight="6"
+                    android:text="@string/support_text"
+                    android:textColor="@color/exo_white" />
+            </LinearLayout>
+
+
+
         </LinearLayout>
+
+
     </ScrollView>
 
     <TextView
