@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Gradle: com.github.Luciferx86:DoodleCanvasLibrary:0.1.0-alpha3@aar">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4105b6826a135ba6bd7b94308bcef3a8/jetified-DoodleCanvasLibrary-0.1.0-alpha3/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4105b6826a135ba6bd7b94308bcef3a8/jetified-DoodleCanvasLibrary-0.1.0-alpha3/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4105b6826a135ba6bd7b94308bcef3a8/jetified-DoodleCanvasLibrary-0.1.0-alpha3/res" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.Luciferx86/DoodleCanvasLibrary/0.1.0-alpha3/ed50e010262281dc4b4275b639064871042f9dfd/DoodleCanvasLibrary-0.1.0-alpha3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
