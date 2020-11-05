@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/parent_container"
+
+<androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/parent_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".main.MainActivity">
+    tools:context=".main.MainActivity"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <FrameLayout
         android:id="@+id/frameLayout"
@@ -61,10 +62,10 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:orientation="vertical"
+        android:visibility="visible"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        >
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
             android:id="@+id/timePointsDisplay"
@@ -76,7 +77,6 @@
             android:padding="4dp"
             android:text=""
             android:textColor="#FFFFFF"
-            android:visibility="gone"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/speedDisplay" />
 
@@ -105,9 +105,9 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 
-<!--this view here is used to allow user to pull down
-the system bar without triggering timestopper screen tap events
-- if you click this nothing happens-->
+    <!--this view here is used to allow user to pull down
+    the system bar without triggering timestopper screen tap events
+    - if you click this nothing happens-->
     <View
         android:layout_width="match_parent"
         android:layout_height="32dp"
@@ -117,8 +117,6 @@ the system bar without triggering timestopper screen tap events
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:focusable="false" />
-
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

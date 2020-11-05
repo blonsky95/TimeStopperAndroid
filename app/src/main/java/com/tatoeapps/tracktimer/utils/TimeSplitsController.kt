@@ -4,9 +4,11 @@ class TimeSplitsController {
     //array of positions user marks in exoplayer
     private var timePointsArray = arrayListOf<Long>()
     var isActive = false
+    var isCleared = true
 
     fun startTiming(initialPosition: Long):Float{
         isActive=true
+        isCleared=false
         timePointsArray.clear()
         timePointsArray.add(initialPosition)
         return 0F
@@ -22,5 +24,9 @@ class TimeSplitsController {
     fun stopTiming(stopPosition:Long):Pair<Float,Float> {
         isActive=false
         return doLap(stopPosition)
+    }
+
+    fun clearTiming() {
+        isCleared=true
     }
 }

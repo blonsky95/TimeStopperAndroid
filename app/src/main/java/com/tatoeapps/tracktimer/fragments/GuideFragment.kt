@@ -25,7 +25,7 @@ class GuideFragment:Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        view.trial_subscription_text.movementMethod=LinkMovementMethod.getInstance()
+//        view.trial_subscription_text.movementMethod=LinkMovementMethod.getInstance()
         view.return_button.setOnClickListener {
             guideInterface.hideGuideFragment()
         }

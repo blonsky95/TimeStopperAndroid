@@ -102,27 +102,40 @@
     </ScrollView>
 
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="24dp"
-        android:layout_gravity="end|bottom"
-        android:layout_weight="0.6"
         android:gravity="center">
+
+        <TextView
+            android:id="@+id/guide_previous_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:padding="12dp"
+            android:text="@string/previous_button"
+            android:textColor="@color/exo_white"
+            android:textSize="18sp" />
 
         <TextView
             android:id="@+id/guide_next_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end|bottom"
-            android:gravity="center"
-            android:padding="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:padding="12dp"
             android:text="@string/next_button"
             android:textColor="@color/exo_white"
             android:textSize="18sp" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 </LinearLayout>

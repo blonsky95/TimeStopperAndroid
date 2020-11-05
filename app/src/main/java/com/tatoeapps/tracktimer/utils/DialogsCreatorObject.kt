@@ -73,7 +73,9 @@ object DialogsCreatorObject {
         dialogCustomView.product_description.text = spannableString
         dialogCustomView.product_description.movementMethod=LinkMovementMethod.getInstance()
         dialogCustomView.product_price.visibility=View.GONE
-        dialogCustomView.subscribe_button.text=mainActivity.getString(R.string.subscribed_text)
+//        dialogCustomView.subscribe_button.text=mainActivity.getString(R.string.subscribed_text)
+        dialogCustomView.trial_subscription_text.visibility=View.GONE
+        dialogCustomView.subscribe_button.visibility=View.GONE
 
         builder.setView(dialogCustomView)
         return builder.create()

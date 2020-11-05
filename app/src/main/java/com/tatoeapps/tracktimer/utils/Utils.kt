@@ -33,7 +33,7 @@ object Utils {
     private val df = DecimalFormat("0.000")
 
     fun floatToStartString(startTiming: Float): String {
-        return df.format(startTiming)
+        return "${df.format(startTiming)} (START)"
     }
 
     fun pairFloatToLapString(pair: Pair<Float, Float>): String {

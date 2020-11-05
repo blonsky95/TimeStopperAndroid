@@ -1,7 +1,6 @@
 package com.tatoeapps.tracktimer.utils
 
 import android.app.Application
-import android.widget.Toast
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.MutableLiveData
@@ -67,7 +66,7 @@ class BillingClientLifecycle(
     val subscriptionActive = MutableLiveData<Boolean>()
     val billingClientConnectionState = MutableLiveData<Int>()
 
-    var mChekingSubscriptionState = false
+    var mCheckingSubscriptionState = true
 
     override fun onPurchasesUpdated(
         billingResult: BillingResult,
@@ -102,7 +101,7 @@ class BillingClientLifecycle(
                     Timber.d("acknowledgePurchase: $responseCode $debugMessage")
                 }
             }
-            if (!mChekingSubscriptionState){
+            if (!mCheckingSubscriptionState){
                 subscriptionActive.postValue(true)
             }
         }
@@ -121,8 +120,6 @@ class BillingClientLifecycle(
 
             //first check if you are already subscribed, if you are, dialog will say something different
             queryExistingPurchases()
-
-//            querySkuDetails()
         }
     }
 
@@ -170,7 +167,7 @@ class BillingClientLifecycle(
 
     //    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     fun create(checkingSubscriptionState: Boolean = false) {
-        mChekingSubscriptionState=checkingSubscriptionState
+        mCheckingSubscriptionState=checkingSubscriptionState
         billingClient = BillingClient.newBuilder(app.applicationContext)
             .setListener(this)
             .enablePendingPurchases()
@@ -223,7 +220,7 @@ class BillingClientLifecycle(
                 handlePurchase(purchase)
             }
         } else {
-            if (mChekingSubscriptionState) {
+            if (mCheckingSubscriptionState) {
                 Utils.updateIsUserSubscribed(mainActivity,false)
             } else {
                 querySkuDetails()

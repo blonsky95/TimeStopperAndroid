@@ -82,8 +82,7 @@ class MainActivity : AppCompatActivity(),
     private var isFullScreenActive = false
     private var isOnboardingOn = false
 
-    private var timeSplitsController =
-        TimeSplitsController()
+    private lateinit var timeSplitsController :TimeSplitsController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -143,8 +142,9 @@ class MainActivity : AppCompatActivity(),
                 val dialogWindowInterface =
                     object : DialogsCreatorObject.DialogWindowInterface {
                         override fun onSubscribeClicked() {
-                            if (skuDetails!=null) {
-                                val flowParams = BillingFlowParams.newBuilder().setSkuDetails(skuDetails).build()
+                            if (skuDetails != null) {
+                                val flowParams =
+                                    BillingFlowParams.newBuilder().setSkuDetails(skuDetails).build()
                                 billingClientLifecycle.startLaunchBillingFlow(flowParams)
                             }
                         }
@@ -160,22 +160,30 @@ class MainActivity : AppCompatActivity(),
             this,
             androidx.lifecycle.Observer<Boolean> { subscriptionActive ->
 
-                mainViewModel.isConnectingToGooglePlay.postValue(false)
+                //BUG FIX - avoid on resume resets from using the singleton
+                //if variable is false, user has prompted dialog, else, just a background check so dont interact with UI
+                if (!billingClientLifecycle.mCheckingSubscriptionState) {
+                    mainViewModel.isConnectingToGooglePlay.postValue(false)
 
-                //subscription active is always true as of 03/11/2020
-                subscribedAlertDialog =
-                    DialogsCreatorObject.getSubscribedDialog(this)
-                subscribedAlertDialog!!.show()
-                unsubscribedAlertDialog?.dismiss()
+                    //subscription active is always true as of 03/11/2020
+                    subscribedAlertDialog =
+                        DialogsCreatorObject.getSubscribedDialog(this)
+                    subscribedAlertDialog!!.show()
+                    unsubscribedAlertDialog?.dismiss()
+                }
+
             })
 
         billingClientLifecycle.billingClientConnectionState.observe(
             this,
-            androidx.lifecycle.Observer <Int>{_ ->
-                if (loadingAlertDialog!=null && loadingAlertDialog!!.isShowing) {
-                    loadingAlertDialog!!.findViewById<TextView>(id.loading_dialog_text)?.text=getString(
-                                            R.string.internet_problem_text)
-                    loadingAlertDialog!!.findViewById<ProgressBar>(id.indeterminateBar)?.visibility=View.GONE
+            androidx.lifecycle.Observer<Int> { _ ->
+                if (loadingAlertDialog != null && loadingAlertDialog!!.isShowing) {
+                    loadingAlertDialog!!.findViewById<TextView>(id.loading_dialog_text)?.text =
+                        getString(
+                            R.string.internet_problem_text
+                        )
+                    loadingAlertDialog!!.findViewById<ProgressBar>(id.indeterminateBar)?.visibility =
+                        View.GONE
                 }
             }
         )
@@ -354,8 +362,8 @@ class MainActivity : AppCompatActivity(),
 
     override fun clearTiming() {
         updateTimeInfoVisibility(false)
-        timeSplitsController =
-            TimeSplitsController()
+        timeSplitsController.clearTiming()
+//        timeSplitsController = TimeSplitsController()
     }
 
     override fun helpButtonPressed() {
@@ -386,6 +394,8 @@ class MainActivity : AppCompatActivity(),
 
         //if user has succesfully changed clip, check if the trial was active to count that video as used
         updateFreeTrialInfo()
+        //initialise the timesplits controller to reset data from previous video
+        timeSplitsController = TimeSplitsController()
 
         if (resultCode == RESULT_OK) {
             //UI
@@ -594,9 +604,9 @@ class MainActivity : AppCompatActivity(),
 
     private fun updateTimeInfoVisibility(isVisible: Boolean) {
         if (isVisible) {
-            timePointsDisplay.visibility = View.VISIBLE
+            info_container.visibility = View.VISIBLE
         } else {
-            timePointsDisplay.visibility = View.GONE
+            info_container.visibility = View.GONE
         }
     }
 
@@ -630,7 +640,10 @@ class MainActivity : AppCompatActivity(),
             show,
             supportFragmentManager.findFragmentById(id.speedSlider_frag) as SpeedSliderFragment
         )
-        toggleInfoDisplay(info_container, show)
+
+        if (!timeSplitsController.isCleared) {
+            toggleInfoDisplay(info_container, show)
+        }
     }
 
     private fun toggleInfoDisplay(view: View, show: Boolean) {
