@@ -82,7 +82,7 @@ class MainActivity : AppCompatActivity(),
     private var isFullScreenActive = false
     private var isOnboardingOn = false
 
-    private lateinit var timeSplitsController :TimeSplitsController
+    private lateinit var timeSplitsController: TimeSplitsController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -545,15 +545,16 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onPause() {
-//        if (isFinishing) {
-//            updateFreeTrialInfo()
-//        }
-        if (!isOnboardingOn && exoPlayer.isPlaying) {
-            exoPlayer.stop()
-            exoPlayer.release()
-        }
+        exoPlayer.playWhenReady = false
         super.onPause()
     }
+
+    override fun onDestroy() {
+        exoPlayer.stop()
+        exoPlayer.release()
+        super.onDestroy()
+    }
+
 
     override fun onResume() {
         if (!isFullScreenActive) {
@@ -563,14 +564,20 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onBackPressed() {
-        if (areFragmentsInBackstack()) {
+        if (areFragmentsInBackstack() || supportFragmentManager.findFragmentById(id.start_fragment_container)!!.isVisible) {
             super.onBackPressed()
         } else {
             val dialogBuilder = AlertDialog.Builder(this)
                 .setMessage(this.resources.getString(R.string.dialog_quit))
                 .setPositiveButton(
                     "Yes"
-                ) { _, _ -> super.onBackPressed() }
+                ) { _, _ ->
+                    exoPlayer.playWhenReady = false
+                    toggleFragmentsVisibility(
+                        true,
+                        supportFragmentManager.findFragmentById(id.start_fragment_container) as StartFragment
+                    )
+                }
                 .setNegativeButton("No", null)
                 .setCancelable(true)
             dialogBuilder.show()

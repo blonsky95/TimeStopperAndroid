@@ -83,6 +83,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginTop="8dp"
+                    android:textColorLink="@color/exo_white"
                     android:padding="2dp"
                     android:text="@string/subscription_explanation"
                     android:textColor="@color/exo_white"

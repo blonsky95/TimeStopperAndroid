@@ -49,6 +49,10 @@ object DialogsCreatorObject {
                 dialogCustomView.product_title.text = it.title
                 dialogCustomView.product_description.text = it.description
                 dialogCustomView.product_price.text = it.price
+                val spannableString = SpannableString(mainActivity.getString(R.string.subscription_explanation))
+                Linkify.addLinks(spannableString, Linkify.WEB_URLS)
+                dialogCustomView.trial_subscription_text.text = spannableString
+                dialogCustomView.trial_subscription_text.movementMethod=LinkMovementMethod.getInstance()
                 dialogCustomView.subscribe_button.setOnClickListener {
                     dialogWindowInterface.onSubscribeClicked()
                 }

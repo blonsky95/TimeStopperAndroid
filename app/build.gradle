@@ -41,6 +41,7 @@ dependencies {
     implementation project(':exoplayer-library-core')
     implementation project(':exoplayer-library-dash')
     implementation project(':exoplayer-library-ui')
+    implementation 'com.pierfrancescosoffritti.androidyoutubeplayer:core:10.0.5'
     implementation 'com.android.billingclient:billing-ktx:3.0.1'
     implementation 'com.otaliastudios:zoomlayout:1.8.0'
     implementation 'com.google.android.material:material:1.3.0-alpha03'

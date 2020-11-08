@@ -35,7 +35,7 @@
     <string name="video_timing" tools:ignore="MissingTranslation">Video timing</string>
     <string name="feature_2" tools:ignore="MissingTranslation">Video speed control</string>
     <string name="feature_3" tools:ignore="MissingTranslation">Zoom in/out</string>
-    <string name="dialog_quit" tools:ignore="MissingTranslation">Are you sure you want to quit?</string>
+    <string name="dialog_quit" tools:ignore="MissingTranslation">Are you sure you want to leave this video?</string>
     <string name="permission_toast" tools:ignore="MissingTranslation">Please accept storage access permissions to select videos</string>
 
     <string name="no_subscriptions_available" tools:ignore="MissingTranslation">No subscriptions available</string>
@@ -49,7 +49,7 @@
     <string name="trial_prompt_segment_3" tools:ignore="MissingTranslation">your count is:</string>
     <string name="trial_prompt_segment_4" tools:ignore="MissingTranslation">, continue?</string>
     <string name="trial_subscriptions" tools:ignore="MissingTranslation">Trial &amp; Subscriptions</string>
-    <string name="subscription_explanation" tools:ignore="MissingTranslation">TrackTimer is ad-free and relies on user subscriptions.The free version of TrackTimer allows you to use the timing feature for 1 video per day.\n\nIf you wish to use the timing tool limitlessly, there is a subscription available.\n\nIt costs 4.99€/year, and you can free trial it for a week before any payments are made. If you wish to cancel before the trial is over, head to Play Store, and cancel your subscription. More info <a href="https://support.google.com/googleplay/answer/7018481">HERE</a></string>
+    <string name="subscription_explanation" tools:ignore="MissingTranslation">TrackTimer is ad-free and relies on user subscriptions.The free version of TrackTimer allows you to use the timing feature for 1 video per day.\n\nIf you wish to use the timing tool limitlessly, there is a subscription available.\n\nIt costs 4.99€/year, and you can free trial it for a week before any payments are made. If you wish to cancel before the trial is over, head to Play Store, and cancel your subscription. More info https://support.google.com/googleplay/answer/7018481</string>
     <string name="support_title" tools:ignore="MissingTranslation">Support</string>
     <string name="support_text" tools:ignore="MissingTranslation">If you have any enquiries, suggestions or technical issues you wish to report, email pablo.trescoli@gmail.com</string>
     <string name="already_subscribed" tools:ignore="MissingTranslation">You are already subscribed</string>
