@@ -59,6 +59,8 @@
     <string name="internet_problem_text" tools:ignore="MissingTranslation">There seems to be a problem, make sure you have Internet connection and try again</string>
     <string name="tap_to_select_video" tools:ignore="MissingTranslation">Tap here to select a video</string>
     <string name="previous_button" tools:ignore="MissingTranslation">Previous</string>
+    <string name="timing_error_exp" tools:ignore="MissingTranslation">The timing error for any given time split will increase when the video frame rate is lower. The error thresholds for 30 and 60fps are as follows:\n60 fps {-0.009, +0.009}s\n30 fps {-0.018, +0.018}s</string>
+    <string name="timing_error" tools:ignore="MissingTranslation">Timing error</string>
 
 
 </resources>

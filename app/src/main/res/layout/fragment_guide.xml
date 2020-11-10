@@ -26,11 +26,11 @@
         android:id="@+id/scrollView2"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:fadeScrollbars="false"
-        android:scrollbarThumbVertical="@color/white_50"
-        android:scrollbarSize="8dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
+        android:fadeScrollbars="false"
+        android:scrollbarSize="8dp"
+        android:scrollbarThumbVertical="@color/white_50"
         app:layout_constraintBottom_toTopOf="@id/return_button"
         app:layout_constraintTop_toBottomOf="@id/title_guide">
 
@@ -254,9 +254,9 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="24dp"
 
-                app:useWebUi="false"
                 app:autoPlay="false"
-                app:showFullScreenButton="true"
+                app:showFullScreenButton="false"
+                app:useWebUi="false"
                 app:videoId="WVhVnnKarOY" />
 
             <TextView
@@ -377,10 +377,29 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="24dp"
 
-                app:useWebUi="false"
                 app:autoPlay="false"
-                app:showFullScreenButton="true"
+                app:showFullScreenButton="false"
+                app:useWebUi="false"
                 app:videoId="rwCSi0VqX-c" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/timing_error"
+                android:textColor="@color/exo_white"
+                android:textSize="24sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="24dp"
+                android:text="@string/timing_error_exp"
+                android:textColor="@color/exo_white" />
+
 
             <TextView
                 android:id="@+id/title_guide5"
@@ -420,9 +439,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:gravity="center"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
+        android:gravity="center"
         android:text="@string/guide_return_button"
         android:textAllCaps="true"
         android:textColor="@color/exo_white"

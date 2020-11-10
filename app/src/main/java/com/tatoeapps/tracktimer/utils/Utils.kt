@@ -24,6 +24,7 @@ import java.text.DecimalFormat
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.round
 
 object Utils {
 
@@ -248,7 +249,7 @@ object Utils {
         needsCorrection: Boolean
     ): Long {
         val correctionNextFrameForward = floor(videoFrameRate / 15).toLong()
-        val frameJumpInMs = ceil(1000 / videoFrameRate).toLong()
+        val frameJumpInMs = round(1000 / videoFrameRate).toLong()
 
         return if (needsCorrection) {
             currentExoPlayerPosition + frameJumpInMs * correctionNextFrameForward
@@ -263,6 +264,13 @@ object Utils {
     ): Long {
         val frameJumpInMs = ceil(1000 / videoFrameRate).toLong()
         return currentExoPlayerPosition - frameJumpInMs
+    }
+
+    fun getVideoInfo(videoFrameRate: Float): String {
+        var string = "FPS: $videoFrameRate\n"
+        val error = df.format((1/videoFrameRate)/2)
+        string +="Error\n{-$error,+$error}"
+        return string
     }
 
 

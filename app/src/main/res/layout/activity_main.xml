@@ -68,7 +68,7 @@
         app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
-            android:id="@+id/timePointsDisplay"
+            android:id="@+id/timing_display"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -76,9 +76,31 @@
             android:background="@drawable/rounded_background"
             android:padding="4dp"
             android:text=""
-            android:textColor="#FFFFFF"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/speedDisplay" />
+            android:textColor="#FFFFFF" />f
+
+<!--        <ImageView-->
+<!--            android:id="@+id/video_info_btn"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:padding="4dp"-->
+<!--            android:layout_marginStart="8dp"-->
+<!--            android:layout_marginTop="4dp"-->
+<!--            android:clickable="true"-->
+<!--            android:background="@drawable/rounded_background"-->
+<!--            android:src="@drawable/ic_information"-->
+<!--            android:focusable="true" />-->
+
+<!--        <TextView-->
+<!--            android:id="@+id/video_info"-->
+<!--            android:visibility="gone"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginStart="8dp"-->
+<!--            android:layout_marginTop="4dp"-->
+<!--            android:background="@drawable/rounded_background"-->
+<!--            android:padding="4dp"-->
+<!--            android:text=""-->
+<!--            android:textColor="#FFFFFF" />-->
 
     </LinearLayout>
 

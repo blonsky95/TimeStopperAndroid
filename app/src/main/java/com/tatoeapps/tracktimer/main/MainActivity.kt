@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProviders
@@ -78,6 +79,7 @@ class MainActivity : AppCompatActivity(),
     private var speedFactor = defaultSpeedFactor
 
     private var firstNextFrameSkip = true
+    private var videoFrameRate:Float = 0F
 
     private var isFullScreenActive = false
     private var isOnboardingOn = false
@@ -115,6 +117,10 @@ class MainActivity : AppCompatActivity(),
             hideBuffering()
             setUserScreenTapListener()
             addObservers()
+
+//            video_info_btn.setOnClickListener {
+//                toggleVideoInfoVisibility(video_info.visibility==View.GONE)
+//            }
         }
     }
 
@@ -335,11 +341,12 @@ class MainActivity : AppCompatActivity(),
     }
 
     fun startTiming() {
-        updateTimeInfoVisibility(true)
+        toggleTimingContainerVisibility(true)
         updateLapsText(
             Utils.floatToStartString(timeSplitsController.startTiming(exoPlayer.currentPosition)),
             true
         )
+//        updateVideoInfo()
     }
 
     override fun lapTiming() {
@@ -361,7 +368,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun clearTiming() {
-        updateTimeInfoVisibility(false)
+        toggleTimingContainerVisibility(false)
         timeSplitsController.clearTiming()
 //        timeSplitsController = TimeSplitsController()
     }
@@ -400,11 +407,11 @@ class MainActivity : AppCompatActivity(),
         if (resultCode == RESULT_OK) {
             //UI
             hideStartFragment()
-            updateTimeInfoVisibility(false)
+            toggleTimingContainerVisibility(false)
 
             prepareVideoSource(MediaItem.fromUri(data!!.data!!))
             configureExoPlayerButtons(data.data!!)
-
+//            updateVideoInfo()
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
@@ -493,7 +500,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun configureExoPlayerButtons(mediaUri: Uri) {
         val videoSkipDefaultMs = 5000
-        val videoFrameRate = Utils.getFrameRateOfVideo(this, mediaUri)
+        videoFrameRate = Utils.getFrameRateOfVideo(this, mediaUri)
 
         //reset Speed -> Speed slider frag
         (supportFragmentManager.findFragmentById(id.speedSlider_frag) as SpeedSliderFragment).resetSpeed()
@@ -594,14 +601,18 @@ class MainActivity : AppCompatActivity(),
 
     private fun updateLapsText(newText: String, isReset: Boolean) {
         if (isReset) {
-            timePointsDisplay.text = newText
+            timing_display.text = newText
             return
         } else {
-            var timePointsDisplayText = timePointsDisplay.text.toString()
+            var timePointsDisplayText = timing_display.text.toString()
             timePointsDisplayText += newText
-            timePointsDisplay.text = timePointsDisplayText
+            timing_display.text = timePointsDisplayText
         }
     }
+
+//    private fun updateVideoInfo() {
+//        video_info.text=Utils.getVideoInfo(videoFrameRate)
+//    }
 
     private fun hideStartFragment() {
         supportFragmentManager.beginTransaction()
@@ -609,7 +620,15 @@ class MainActivity : AppCompatActivity(),
             .commitAllowingStateLoss()
     }
 
-    private fun updateTimeInfoVisibility(isVisible: Boolean) {
+//    private fun toggleVideoInfoVisibility(isVisible: Boolean) {
+//        if (isVisible) {
+//            video_info.visibility = View.VISIBLE
+//        } else {
+//            video_info.visibility = View.GONE
+//        }
+//    }
+
+    private fun toggleTimingContainerVisibility(isVisible: Boolean) {
         if (isVisible) {
             info_container.visibility = View.VISIBLE
         } else {
