@@ -2,6 +2,7 @@
 
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/guide_container_constraint_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -32,7 +33,9 @@
         android:scrollbarSize="8dp"
         android:scrollbarThumbVertical="@color/white_50"
         app:layout_constraintBottom_toTopOf="@id/return_button"
-        app:layout_constraintTop_toBottomOf="@id/title_guide">
+        app:layout_constraintTop_toBottomOf="@id/title_guide"
+        app:layout_constraintVertical_bias="1.0"
+        tools:layout_editor_absoluteX="83dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -251,7 +254,8 @@
                 android:id="@+id/youtube_player_view_1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
                 android:layout_marginTop="24dp"
 
                 app:autoPlay="false"
@@ -374,7 +378,8 @@
                 android:id="@+id/youtube_player_view_2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
                 android:layout_marginTop="24dp"
 
                 app:autoPlay="false"
@@ -395,7 +400,6 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
                 android:layout_marginStart="24dp"
                 android:text="@string/timing_error_exp"
                 android:textColor="@color/exo_white" />

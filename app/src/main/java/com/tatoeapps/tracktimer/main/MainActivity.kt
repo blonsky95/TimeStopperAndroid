@@ -3,6 +3,7 @@ package com.tatoeapps.tracktimer.main
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -50,6 +51,7 @@ import com.tatoeapps.tracktimer.utils.Utils
 import com.tatoeapps.tracktimer.viewmodel.MainViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.exo_player_control_view.*
+import kotlinx.android.synthetic.main.fragment_guide.*
 import timber.log.Timber
 import java.util.*
 
@@ -84,7 +86,7 @@ class MainActivity : AppCompatActivity(),
     private var isFullScreenActive = false
     private var isOnboardingOn = false
 
-    private lateinit var timeSplitsController: TimeSplitsController
+    private var timeSplitsController: TimeSplitsController? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,7 +102,6 @@ class MainActivity : AppCompatActivity(),
         } else {
             isOnboardingOn = false
             setContentView(layout.activity_main)
-
             Timber.plant(Timber.DebugTree())
 
             checkPermissions()
@@ -265,6 +266,7 @@ class MainActivity : AppCompatActivity(),
         )
     }
 
+
     /**
      * Speed slider interface
      */
@@ -343,25 +345,25 @@ class MainActivity : AppCompatActivity(),
     fun startTiming() {
         toggleTimingContainerVisibility(true)
         updateLapsText(
-            Utils.floatToStartString(timeSplitsController.startTiming(exoPlayer.currentPosition)),
+            Utils.floatToStartString(timeSplitsController!!.startTiming(exoPlayer.currentPosition)),
             true
         )
 //        updateVideoInfo()
     }
 
     override fun lapTiming() {
-        if (timeSplitsController.isActive) {
+        if (timeSplitsController!=null && timeSplitsController!!.isActive) {
             updateLapsText(
-                Utils.pairFloatToLapString(timeSplitsController.doLap(exoPlayer.currentPosition)),
+                Utils.pairFloatToLapString(timeSplitsController!!.doLap(exoPlayer.currentPosition)),
                 false
             )
         }
     }
 
     override fun stopTiming() {
-        if (timeSplitsController.isActive) {
+        if (timeSplitsController!=null && timeSplitsController!!.isActive) {
             updateLapsText(
-                Utils.pairFloatToLapString(timeSplitsController.stopTiming(exoPlayer.currentPosition)),
+                Utils.pairFloatToLapString(timeSplitsController!!.stopTiming(exoPlayer.currentPosition)),
                 false
             )
         }
@@ -369,7 +371,7 @@ class MainActivity : AppCompatActivity(),
 
     override fun clearTiming() {
         toggleTimingContainerVisibility(false)
-        timeSplitsController.clearTiming()
+        timeSplitsController?.clearTiming()
 //        timeSplitsController = TimeSplitsController()
     }
 
@@ -667,7 +669,7 @@ class MainActivity : AppCompatActivity(),
             supportFragmentManager.findFragmentById(id.speedSlider_frag) as SpeedSliderFragment
         )
 
-        if (!timeSplitsController.isCleared) {
+        if (timeSplitsController!=null && !timeSplitsController!!.isCleared) {
             toggleInfoDisplay(info_container, show)
         }
     }
