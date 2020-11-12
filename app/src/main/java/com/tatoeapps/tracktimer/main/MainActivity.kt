@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.transition.Slide
@@ -83,7 +84,6 @@ class MainActivity : AppCompatActivity(),
     private var firstNextFrameSkip = true
     private var videoFrameRate:Float = 0F
 
-    private var isFullScreenActive = false
     private var isOnboardingOn = false
 
     private var timeSplitsController: TimeSplitsController? = null
@@ -118,10 +118,6 @@ class MainActivity : AppCompatActivity(),
             hideBuffering()
             setUserScreenTapListener()
             addObservers()
-
-//            video_info_btn.setOnClickListener {
-//                toggleVideoInfoVisibility(video_info.visibility==View.GONE)
-//            }
         }
     }
 
@@ -348,7 +344,6 @@ class MainActivity : AppCompatActivity(),
             Utils.floatToStartString(timeSplitsController!!.startTiming(exoPlayer.currentPosition)),
             true
         )
-//        updateVideoInfo()
     }
 
     override fun lapTiming() {
@@ -372,7 +367,6 @@ class MainActivity : AppCompatActivity(),
     override fun clearTiming() {
         toggleTimingContainerVisibility(false)
         timeSplitsController?.clearTiming()
-//        timeSplitsController = TimeSplitsController()
     }
 
     override fun helpButtonPressed() {
@@ -413,7 +407,6 @@ class MainActivity : AppCompatActivity(),
 
             prepareVideoSource(MediaItem.fromUri(data!!.data!!))
             configureExoPlayerButtons(data.data!!)
-//            updateVideoInfo()
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
@@ -566,9 +559,7 @@ class MainActivity : AppCompatActivity(),
 
 
     override fun onResume() {
-        if (!isFullScreenActive) {
-            setUpFullScreen()
-        }
+        setUpFullScreen()
         super.onResume()
     }
 
@@ -723,16 +714,24 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun setUpFullScreen() {
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-        isFullScreenActive = true
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+        } else {
+            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            or View.SYSTEM_UI_FLAG_FULLSCREEN)
+        }
     }
 
     private fun setUpSystemUiVisibilityListener() {
         window.decorView.setOnSystemUiVisibilityChangeListener { visibility ->
-            //if triggered because in file provider - no need to change anything because onresume will catch the change in the variable
-            //user has dragged status bar making it visible, or setUpFullscreen has been called and its about to go invisible
-            isFullScreenActive =
-                visibility and View.SYSTEM_UI_FLAG_FULLSCREEN != 0
+            //basically, if a system component becomes visible, it will restore the immersive sticky state
+
+            //this condition checks the visibility, if ==0 then something is visible - from developer docs
+            if (visibility and View.SYSTEM_UI_FLAG_FULLSCREEN == 0) {
+                setUpFullScreen()
+            }
         }
     }
 
@@ -786,10 +785,6 @@ class MainActivity : AppCompatActivity(),
             val show =
                 (supportFragmentManager.findFragmentById(id.actionBtns_frag) as ActionButtonsFragment).isHidden
             showActionFragments(show)
-
-            if (!isFullScreenActive) {
-                setUpFullScreen()
-            }
             return true
         }
     }

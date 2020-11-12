@@ -15,12 +15,12 @@
         android:background="#00000000">
 
         <com.otaliastudios.zoom.ZoomSurfaceView
-            android:id="@+id/surface_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:horizontalPanEnabled="true"
-            app:verticalPanEnabled="true"
-            app:zoomEnabled="true" />
+        android:id="@+id/surface_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:horizontalPanEnabled="true"
+        app:verticalPanEnabled="true"
+        app:zoomEnabled="true" />
 
         <com.google.android.exoplayer2.ui.PlayerControlView
             android:id="@+id/player_controls"
