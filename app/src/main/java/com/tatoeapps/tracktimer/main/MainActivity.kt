@@ -34,6 +34,7 @@ import com.google.android.exoplayer2.ui.DefaultTimeBar
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.video.VideoListener
 import com.otaliastudios.zoom.ZoomSurfaceView
+import com.tatoeapps.tracktimer.BuildConfig
 import com.tatoeapps.tracktimer.R
 import com.tatoeapps.tracktimer.R.id
 import com.tatoeapps.tracktimer.R.layout
@@ -82,7 +83,7 @@ class MainActivity : AppCompatActivity(),
     private var speedFactor = defaultSpeedFactor
 
     private var firstNextFrameSkip = true
-    private var videoFrameRate:Float = 0F
+    private var videoFrameRate: Float = 0F
 
     private var isOnboardingOn = false
 
@@ -90,6 +91,10 @@ class MainActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
 
         billingClientLifecycle = BillingClientLifecycle.getInstance(application, this, lifecycle)
         billingClientLifecycle.create(true)
@@ -102,7 +107,6 @@ class MainActivity : AppCompatActivity(),
         } else {
             isOnboardingOn = false
             setContentView(layout.activity_main)
-            Timber.plant(Timber.DebugTree())
 
             checkPermissions()
             setUpSystemUiVisibilityListener()
@@ -347,7 +351,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun lapTiming() {
-        if (timeSplitsController!=null && timeSplitsController!!.isActive) {
+        if (timeSplitsController != null && timeSplitsController!!.isActive) {
             updateLapsText(
                 Utils.pairFloatToLapString(timeSplitsController!!.doLap(exoPlayer.currentPosition)),
                 false
@@ -356,7 +360,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun stopTiming() {
-        if (timeSplitsController!=null && timeSplitsController!!.isActive) {
+        if (timeSplitsController != null && timeSplitsController!!.isActive) {
             updateLapsText(
                 Utils.pairFloatToLapString(timeSplitsController!!.stopTiming(exoPlayer.currentPosition)),
                 false
@@ -660,7 +664,7 @@ class MainActivity : AppCompatActivity(),
             supportFragmentManager.findFragmentById(id.speedSlider_frag) as SpeedSliderFragment
         )
 
-        if (timeSplitsController!=null && !timeSplitsController!!.isCleared) {
+        if (timeSplitsController != null && !timeSplitsController!!.isCleared) {
             toggleInfoDisplay(info_container, show)
         }
     }
@@ -715,13 +719,13 @@ class MainActivity : AppCompatActivity(),
 
     private fun setUpFullScreen() {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-        } else {
-            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            or View.SYSTEM_UI_FLAG_FULLSCREEN)
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)act {
+//            window.setDecorFitsSystemWindows(false)
+//        } else {
+        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_FULLSCREEN)
+//        }
     }
 
     private fun setUpSystemUiVisibilityListener() {
@@ -733,6 +737,12 @@ class MainActivity : AppCompatActivity(),
                 setUpFullScreen()
             }
         }
+    }
+
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        Timber.d("Config change")
+        super.onConfigurationChanged(newConfig)
     }
 
     /**

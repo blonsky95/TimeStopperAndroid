@@ -29,7 +29,6 @@
 
     <string name="next_button" tools:ignore="MissingTranslation">Next</string>
     <string name="timestopper_features" tools:ignore="MissingTranslation">Features</string>
-    <string name="content_desc_button_forward" tools:ignore="MissingTranslation">Button forward</string>
     <string name="onboarding_screen_2_text" tools:ignore="MissingTranslation">Use the buttons on the right panel with slow motion or frame-by-frame navigation to get accurate timings</string>
     <string name="feature_1" tools:ignore="MissingTranslation">Frame-by-frame navigation</string>
     <string name="video_timing" tools:ignore="MissingTranslation">Video timing</string>
@@ -48,14 +47,12 @@
     <string name="trial_prompt_segment_2" tools:ignore="MissingTranslation">videos to be timed per day,</string>
     <string name="trial_prompt_segment_3" tools:ignore="MissingTranslation">your count is:</string>
     <string name="trial_prompt_segment_4" tools:ignore="MissingTranslation">, continue?</string>
-    <string name="trial_subscriptions" tools:ignore="MissingTranslation">Trial &amp; Subscriptions</string>
     <string name="subscription_explanation" tools:ignore="MissingTranslation">TrackTimer is ad-free and relies on user subscriptions.The free version of TrackTimer allows you to use the timing feature for 1 video per day.\n\nIf you wish to use the timing tool limitlessly, there is a subscription available.\n\nIt costs 4.99€/year, and you can free trial it for a week before any payments are made. If you wish to cancel before the trial is over, head to Play Store, and cancel your subscription. More info https://support.google.com/googleplay/answer/7018481</string>
     <string name="support_title" tools:ignore="MissingTranslation">Support</string>
     <string name="support_text" tools:ignore="MissingTranslation">If you have any enquiries, suggestions or technical issues you wish to report, email pablo.trescoli@gmail.com</string>
     <string name="already_subscribed" tools:ignore="MissingTranslation">You are already subscribed</string>
 <!--    <string name="cancel_subscription_info" tools:ignore="MissingTranslation">To cancel your subscription, go to Play Store Subscriptions, more info <a href="https://support.google.com/googleplay/answer/7018481">HERE</a>.\n\nThis will cancel your next (or first ever, if in 7 day trial period) payment but it wont work as a refund.</string>-->
     <string name="cancel_subscription_info" tools:ignore="MissingTranslation">To cancel your subscription, go to Play Store Subscriptions, more info here support.google.com/googleplay/answer/7018481 \n\nThis will cancel your next (or first ever, if in 7 day trial period) payment but it wont work as a refund.</string>
-    <string name="subscribed_text" tools:ignore="MissingTranslation">SUBSCRIBED</string>
     <string name="internet_problem_text" tools:ignore="MissingTranslation">There seems to be a problem, make sure you have Internet connection and try again</string>
     <string name="tap_to_select_video" tools:ignore="MissingTranslation">Tap here to select a video</string>
     <string name="previous_button" tools:ignore="MissingTranslation">Previous</string>
