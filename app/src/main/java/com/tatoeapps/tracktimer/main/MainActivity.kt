@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity(),
 
     private lateinit var mDetector: GestureDetectorCompat
 
-    lateinit var exoPlayer: SimpleExoPlayer
+    private var exoPlayer: SimpleExoPlayer? = null
     private lateinit var dataSourceFactory: DataSource.Factory
     lateinit var mainViewModel: MainViewModel
 
@@ -345,7 +345,7 @@ class MainActivity : AppCompatActivity(),
     fun startTiming() {
         toggleTimingContainerVisibility(true)
         updateLapsText(
-            Utils.floatToStartString(timeSplitsController!!.startTiming(exoPlayer.currentPosition)),
+            Utils.floatToStartString(timeSplitsController!!.startTiming(exoPlayer!!.currentPosition)),
             true
         )
     }
@@ -353,7 +353,7 @@ class MainActivity : AppCompatActivity(),
     override fun lapTiming() {
         if (timeSplitsController != null && timeSplitsController!!.isActive) {
             updateLapsText(
-                Utils.pairFloatToLapString(timeSplitsController!!.doLap(exoPlayer.currentPosition)),
+                Utils.pairFloatToLapString(timeSplitsController!!.doLap(exoPlayer!!.currentPosition)),
                 false
             )
         }
@@ -362,7 +362,7 @@ class MainActivity : AppCompatActivity(),
     override fun stopTiming() {
         if (timeSplitsController != null && timeSplitsController!!.isActive) {
             updateLapsText(
-                Utils.pairFloatToLapString(timeSplitsController!!.stopTiming(exoPlayer.currentPosition)),
+                Utils.pairFloatToLapString(timeSplitsController!!.stopTiming(exoPlayer!!.currentPosition)),
                 false
             )
         }
@@ -386,8 +386,8 @@ class MainActivity : AppCompatActivity(),
      */
 
     private fun intentPickMedia() {
-        if (exoPlayer.isPlaying) {
-            exoPlayer.playWhenReady = false
+        if (exoPlayer!!.isPlaying) {
+            exoPlayer!!.playWhenReady = false
         }
         val intent = Intent(
             Intent.ACTION_OPEN_DOCUMENT,
@@ -418,7 +418,7 @@ class MainActivity : AppCompatActivity(),
     private fun changeSpeed(newSpeed: Float) {
         speedFactor = newSpeed
         val playbackParameters = PlaybackParameters(speedFactor)
-        exoPlayer.setPlaybackParameters(playbackParameters)
+        exoPlayer!!.setPlaybackParameters(playbackParameters)
     }
 
     private fun showGuideWindow() {
@@ -438,7 +438,7 @@ class MainActivity : AppCompatActivity(),
             when (playbackState) {
                 Player.STATE_READY -> {
                     task = Runnable {
-                        exoPlayer.playWhenReady = true
+                        exoPlayer!!.playWhenReady = true
                         firstNextFrameSkip = true
                     }
                 }
@@ -467,7 +467,7 @@ class MainActivity : AppCompatActivity(),
         val surface = surface_view
 
 
-        exoPlayer.addVideoListener(object : VideoListener {
+        exoPlayer!!.addVideoListener(object : VideoListener {
             override fun onVideoSizeChanged(
                 width: Int,
                 height: Int,
@@ -480,7 +480,7 @@ class MainActivity : AppCompatActivity(),
         surface.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAccent))
         surface.addCallback(object : ZoomSurfaceView.Callback {
             override fun onZoomSurfaceCreated(view: ZoomSurfaceView) {
-                exoPlayer.setVideoSurface(view.surface)
+                exoPlayer!!.setVideoSurface(view.surface)
             }
 
             override fun onZoomSurfaceDestroyed(view: ZoomSurfaceView) {
@@ -491,8 +491,8 @@ class MainActivity : AppCompatActivity(),
         playerControls.show()
 
 
-        exoPlayer.addListener(playerStateListener)
-        exoPlayer.setSeekParameters(SeekParameters.EXACT) //this is the default anyway
+        exoPlayer!!.addListener(playerStateListener)
+        exoPlayer!!.setSeekParameters(SeekParameters.EXACT) //this is the default anyway
 
         dataSourceFactory = Utils.getDataSourceFactoryInstance(this, application)
     }
@@ -505,35 +505,35 @@ class MainActivity : AppCompatActivity(),
         (supportFragmentManager.findFragmentById(id.speedSlider_frag) as SpeedSliderFragment).resetSpeed()
 
         custom_forward.setOnClickListener {
-            exoPlayer.seekTo(exoPlayer.currentPosition + (videoSkipDefaultMs * speedFactor).toLong())
+            exoPlayer!!.seekTo(exoPlayer!!.currentPosition + (videoSkipDefaultMs * speedFactor).toLong())
         }
         custom_rewind.setOnClickListener {
             val rewindPosition =
-                if (exoPlayer.currentPosition - (videoSkipDefaultMs * speedFactor) < 0) {
+                if (exoPlayer!!.currentPosition - (videoSkipDefaultMs * speedFactor) < 0) {
                     0L
                 } else {
-                    exoPlayer.currentPosition - (videoSkipDefaultMs * speedFactor).toLong()
+                    exoPlayer!!.currentPosition - (videoSkipDefaultMs * speedFactor).toLong()
                 }
-            exoPlayer.seekTo(rewindPosition)
+            exoPlayer!!.seekTo(rewindPosition)
         }
 
         next_frame_btn.setOnClickListener {
             if (!isPlayingVideo) {
                 //if first next frame skip is true, it needs frame correcting - see issue #18
                 val newPosition = Utils.getPositionOfNextFrame(
-                    exoPlayer.currentPosition,
+                    exoPlayer!!.currentPosition,
                     videoFrameRate,
                     firstNextFrameSkip
                 )
                 firstNextFrameSkip = false
-                exoPlayer.seekTo(newPosition)
+                exoPlayer!!.seekTo(newPosition)
             }
         }
         previous_frame_btn.setOnClickListener {
             if (!isPlayingVideo) {
-                exoPlayer.seekTo(
+                exoPlayer!!.seekTo(
                     Utils.getPositionOfPreviousFrame(
-                        exoPlayer.currentPosition,
+                        exoPlayer!!.currentPosition,
                         videoFrameRate
                     )
                 )
@@ -545,19 +545,19 @@ class MainActivity : AppCompatActivity(),
     private fun prepareVideoSource(mediaItem: MediaItem) {
         val videoSource = Utils.getVideoSource(mediaItem, dataSourceFactory)
 
-        exoPlayer.setMediaSource(videoSource)
-        exoPlayer.prepare()
+        exoPlayer!!.setMediaSource(videoSource)
+        exoPlayer!!.prepare()
         hasVideo = true
     }
 
     override fun onPause() {
-        exoPlayer.playWhenReady = false
+        exoPlayer?.playWhenReady = false
         super.onPause()
     }
 
     override fun onDestroy() {
-        exoPlayer.stop()
-        exoPlayer.release()
+        exoPlayer?.stop()
+        exoPlayer?.release()
         super.onDestroy()
     }
 
@@ -576,7 +576,7 @@ class MainActivity : AppCompatActivity(),
                 .setPositiveButton(
                     "Yes"
                 ) { _, _ ->
-                    exoPlayer.playWhenReady = false
+                    exoPlayer?.playWhenReady = false
                     toggleFragmentsVisibility(
                         true,
                         supportFragmentManager.findFragmentById(id.start_fragment_container) as StartFragment
@@ -616,14 +616,6 @@ class MainActivity : AppCompatActivity(),
             .hide(supportFragmentManager.findFragmentById(id.start_fragment_container) as StartFragment)
             .commitAllowingStateLoss()
     }
-
-//    private fun toggleVideoInfoVisibility(isVisible: Boolean) {
-//        if (isVisible) {
-//            video_info.visibility = View.VISIBLE
-//        } else {
-//            video_info.visibility = View.GONE
-//        }
-//    }
 
     private fun toggleTimingContainerVisibility(isVisible: Boolean) {
         if (isVisible) {
@@ -730,7 +722,6 @@ class MainActivity : AppCompatActivity(),
                     //These hide nav and status bar
                     or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                     or View.SYSTEM_UI_FLAG_FULLSCREEN)
-//        }
     }
 
     private fun setUpSystemUiVisibilityListener() {
@@ -742,12 +733,6 @@ class MainActivity : AppCompatActivity(),
                 setUpFullScreen()
             }
         }
-    }
-
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        Timber.d("Config change")
-        super.onConfigurationChanged(newConfig)
     }
 
     /**
