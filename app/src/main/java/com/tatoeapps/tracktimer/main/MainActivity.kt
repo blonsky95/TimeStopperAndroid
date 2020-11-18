@@ -615,6 +615,16 @@ class MainActivity : AppCompatActivity(),
         supportFragmentManager.beginTransaction()
             .hide(supportFragmentManager.findFragmentById(id.start_fragment_container) as StartFragment)
             .commitAllowingStateLoss()
+        start_fragment_container.visibility=View.GONE
+    }
+
+    private fun getStartFragment() {
+        start_fragment_container.visibility=View.VISIBLE
+        supportFragmentManager.beginTransaction()
+            .add(
+                id.start_fragment_container,
+                StartFragment()
+            ).commit()
     }
 
     private fun toggleTimingContainerVisibility(isVisible: Boolean) {
@@ -623,14 +633,6 @@ class MainActivity : AppCompatActivity(),
         } else {
             info_container.visibility = View.GONE
         }
-    }
-
-    private fun getStartFragment() {
-        supportFragmentManager.beginTransaction()
-            .add(
-                id.start_fragment_container,
-                StartFragment()
-            ).commit()
     }
 
     private fun setUserScreenTapListener() {
@@ -690,6 +692,14 @@ class MainActivity : AppCompatActivity(),
                 R.anim.slide_down_to_up,
                 R.anim.slide_up_to_down
             )
+        }
+        
+        if (fragment is StartFragment) {
+            if (show) {
+                start_fragment_container.visibility=View.VISIBLE
+            } else {
+                start_fragment_container.visibility=View.GONE
+            }
         }
 
         if (show) {
