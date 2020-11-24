@@ -66,7 +66,7 @@
                     android:layout_gravity="center"
                     android:layout_marginStart="24dp"
                     android:layout_weight="1"
-                    android:src="@drawable/video_icon" />
+                    android:src="@drawable/ic_add_video_new_small" />
 
                 <TextView
                     android:layout_width="0dp"

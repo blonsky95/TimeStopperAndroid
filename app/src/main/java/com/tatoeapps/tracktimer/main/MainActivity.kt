@@ -115,16 +115,33 @@ class MainActivity : AppCompatActivity(),
                 .hide(supportFragmentManager.findFragmentById(id.guide_frag) as GuideFragment)
                 .commit()
 
-            if (savedInstanceState == null) {
-                getStartFragment()
-            }
             setUpPlayer()
             hideBuffering()
             setUserScreenTapListener()
             addObservers()
+
+            if (savedInstanceState == null) {
+                if (intent?.action != Intent.ACTION_VIEW) {
+                    getStartFragment()
+                } else {
+                    loadVideoFromImplicitIntent(intent.data)
+                }
+            }
         }
     }
 
+    /**
+     * From implicit intent
+     */
+
+    private fun loadVideoFromImplicitIntent(data: Uri?) {
+        updateFreeTrialInfo()
+        timeSplitsController = TimeSplitsController()
+
+        toggleTimingContainerVisibility(false)
+        prepareVideoSource(MediaItem.fromUri(data!!))
+        configureExoPlayerButtons(data)
+    }
 
     /**
      * Purchase subscription
@@ -568,7 +585,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onBackPressed() {
-        if (areFragmentsInBackstack() || supportFragmentManager.findFragmentById(id.start_fragment_container)!!.isVisible) {
+        if (intent?.action == Intent.ACTION_VIEW || areFragmentsInBackstack() || supportFragmentManager.findFragmentById(id.start_fragment_container)!!.isVisible) {
             super.onBackPressed()
         } else {
             val dialogBuilder = AlertDialog.Builder(this)
@@ -608,9 +625,11 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun hideStartFragment() {
-        supportFragmentManager.beginTransaction()
-            .hide(supportFragmentManager.findFragmentById(id.start_fragment_container) as StartFragment)
-            .commitAllowingStateLoss()
+        if (intent?.action != Intent.ACTION_VIEW) {
+            supportFragmentManager.beginTransaction()
+                .hide(supportFragmentManager.findFragmentById(id.start_fragment_container) as StartFragment)
+                .commitAllowingStateLoss()
+        }
     }
 
     private fun getStartFragment() {
@@ -708,8 +727,8 @@ class MainActivity : AppCompatActivity(),
     private fun setUpFullScreen() {
 
         window.decorView.systemUiVisibility =
-                    //this one does immersive mode
-                    (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                //this one does immersive mode
+            (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                     // Set the content to appear under the system bars so that the
                     // content doesn't resize when the system bars hide and show.
                     or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
