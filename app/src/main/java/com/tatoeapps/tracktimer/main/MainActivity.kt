@@ -653,7 +653,6 @@ class MainActivity : AppCompatActivity(),
         surface_view.setOnTouchListener { _, p1 -> mDetector.onTouchEvent(p1) }
         surface_view.setMaxZoom(5f)
         Timber.d("GESTURE - max zoom: ${surface_view.getMaxZoom()}")
-
     }
 
     private fun showActionFragments(show: Boolean) {
