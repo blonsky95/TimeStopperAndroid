@@ -2,6 +2,7 @@ package com.tatoeapps.tracktimer.utils
 
 import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.text.SpannableString
 import android.text.method.LinkMovementMethod
 import android.text.method.MovementMethod
@@ -28,6 +29,20 @@ object DialogsCreatorObject {
 
         fun onCancelButton() {
         }
+    }
+
+    fun getRatingPromptDialog(mainActivity: MainActivity, dialogWindowInterface: DialogWindowInterface) :AlertDialog{
+        val builder = AlertDialog.Builder(mainActivity)
+        builder.setMessage(mainActivity.getString(R.string.rating_prompt))
+            .setPositiveButton(R.string.yes_string
+            ) { _, _ ->
+                dialogWindowInterface.onPositiveButton()
+            }
+            .setNegativeButton(mainActivity.getString(R.string.not_now_string)) {
+                    _, _ ->
+            }
+
+        return builder.create()
     }
 
     fun getUnsubscribedDialog(

@@ -3,9 +3,7 @@ package com.tatoeapps.tracktimer.main
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.transition.Slide
@@ -23,7 +21,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProviders
@@ -33,6 +30,7 @@ import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ui.DefaultTimeBar
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.video.VideoListener
+import com.google.android.play.core.review.ReviewManagerFactory
 import com.otaliastudios.zoom.ZoomSurfaceView
 import com.tatoeapps.tracktimer.BuildConfig
 import com.tatoeapps.tracktimer.R
@@ -53,7 +51,6 @@ import com.tatoeapps.tracktimer.utils.Utils
 import com.tatoeapps.tracktimer.viewmodel.MainViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.exo_player_control_view.*
-import kotlinx.android.synthetic.main.fragment_guide.*
 import timber.log.Timber
 import java.util.*
 
@@ -127,8 +124,44 @@ class MainActivity : AppCompatActivity(),
                     loadVideoFromImplicitIntent(intent.data)
                 }
             }
+
+            promptAppRatingToUser()
         }
     }
+
+    /**
+     * Prompting user to rate app
+     */
+
+    private fun promptAppRatingToUser() {
+        if (Utils.shouldShowRatingPrompt(this, System.currentTimeMillis())) {
+
+            val dialogWindowInterface =
+                object : DialogsCreatorObject.DialogWindowInterface {
+                    override fun onPositiveButton() {
+                        showAppReviewToUser()
+                        super.onPositiveButton()
+                    }
+                }
+
+            val suggestRateAppDialog = DialogsCreatorObject.getRatingPromptDialog(this, dialogWindowInterface)
+            suggestRateAppDialog.setCancelable(true)
+            suggestRateAppDialog.show()
+        }
+    }
+
+    private fun showAppReviewToUser() {
+        val manager = ReviewManagerFactory.create(this)
+        val request = manager.requestReviewFlow()
+        request.addOnCompleteListener { reviewRequest ->
+            if (reviewRequest.isSuccessful) {
+                val reviewInfo = reviewRequest.result
+                val flow = manager.launchReviewFlow(this, reviewInfo)
+                flow.addOnCompleteListener { _ ->
+                    Utils.updateHasUserReviewedApp(this,true)
+                }
+            }
+        }    }
 
     /**
      * From implicit intent

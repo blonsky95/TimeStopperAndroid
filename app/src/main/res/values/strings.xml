@@ -58,6 +58,10 @@
     <string name="previous_button" tools:ignore="MissingTranslation">Previous</string>
     <string name="timing_error_exp" tools:ignore="MissingTranslation">The timing error for any given time split will increase when the video frame rate is lower. The error thresholds for 30 and 60fps are as follows:\n60 fps {-0.009, +0.009}s\n30 fps {-0.018, +0.018}s</string>
     <string name="timing_error" tools:ignore="MissingTranslation">Timing error</string>
+    <string name="preference_has_reviewed" tools:ignore="MissingTranslation">preference_has_reviewed</string>
+    <string name="preference_date_rating_prompt" tools:ignore="MissingTranslation">preference_date_rating_prompt</string>
+    <string name="rating_prompt" tools:ignore="MissingTranslation">Rate our app if you are finding it helpful!</string>
+    <string name="not_now_string" tools:ignore="MissingTranslation">Not now</string>
 
 
 </resources>
