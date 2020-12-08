@@ -83,6 +83,7 @@ class MainActivity : AppCompatActivity(),
     private var videoFrameRate: Float = 0F
 
     private var isOnboardingOn = false
+    private var hasMediaLoaded = false
 
     private var timeSplitsController: TimeSplitsController? = null
 
@@ -99,10 +100,10 @@ class MainActivity : AppCompatActivity(),
         mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
         if (Utils.isUserFirstTimer(this)) {
-            isOnboardingOn = true
+//            isOnboardingOn = true
             startActivity(Intent(this, OnBoardingActivity::class.java))
         } else {
-            isOnboardingOn = false
+//            isOnboardingOn = false
             setContentView(layout.activity_main)
 
             checkPermissions()
@@ -127,6 +128,15 @@ class MainActivity : AppCompatActivity(),
 
             promptAppRatingToUser()
         }
+    }
+
+    override fun onResume() {
+        setUpFullScreen()
+        //check if screen is black so first check if start fragment isn't visible + exoplayer is instanced (not onboarding) + exo has a media item (not on start fragment)
+        if (hasMediaLoaded && exoPlayer?.currentMediaItem == null) {
+            Toast.makeText(this,"IS THERE BLACK SCREEN?", Toast.LENGTH_SHORT).show()
+        }
+        super.onResume()
     }
 
     /**
@@ -170,6 +180,7 @@ class MainActivity : AppCompatActivity(),
     private fun loadVideoFromImplicitIntent(data: Uri?) {
         updateFreeTrialInfo()
         timeSplitsController = TimeSplitsController()
+        hasMediaLoaded=true
 
         toggleTimingContainerVisibility(false)
         prepareVideoSource(MediaItem.fromUri(data!!))
@@ -448,19 +459,21 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-
-        //if user has succesfully changed clip, check if the trial was active to count that video as used
-        updateFreeTrialInfo()
-        //initialise the timesplits controller to reset data from previous video
-        timeSplitsController = TimeSplitsController()
-
         if (resultCode == RESULT_OK) {
+
+            //if user has succesfully changed clip, check if the trial was active to count that video as used
+            updateFreeTrialInfo()
+            //initialise the timesplits controller to reset data from previous video
+            timeSplitsController = TimeSplitsController()
+
             //UI
             hideStartFragment()
             toggleTimingContainerVisibility(false)
 
             prepareVideoSource(MediaItem.fromUri(data!!.data!!))
             configureExoPlayerButtons(data.data!!)
+            //todo do this with observers - check when result is ok and then trigger all this - ARCHITECHTURE
+            hasMediaLoaded=true
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
@@ -611,12 +624,6 @@ class MainActivity : AppCompatActivity(),
         super.onDestroy()
     }
 
-
-    override fun onResume() {
-        setUpFullScreen()
-        super.onResume()
-    }
-
     override fun onBackPressed() {
         if (intent?.action == Intent.ACTION_VIEW || areFragmentsInBackstack() || supportFragmentManager.findFragmentById(id.start_fragment_container)!!.isVisible) {
             super.onBackPressed()
@@ -627,6 +634,7 @@ class MainActivity : AppCompatActivity(),
                     "Yes"
                 ) { _, _ ->
                     exoPlayer?.playWhenReady = false
+                    hasMediaLoaded=false
                     toggleFragmentsVisibility(
                         true,
                         supportFragmentManager.findFragmentById(id.start_fragment_container) as StartFragment

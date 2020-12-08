@@ -173,7 +173,7 @@ object Utils {
         }
     }
 
-    fun getPrefDayOfYearTrial(context: Context): Int {
+    private fun getPrefDayOfYearTrial(context: Context): Int {
         val sharedPref = context.getSharedPreferences(
             context.getString(R.string.preference_day_of_year_last_trial), Context.MODE_PRIVATE
         )
