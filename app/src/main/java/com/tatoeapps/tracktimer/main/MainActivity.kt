@@ -29,9 +29,7 @@ import com.android.billingclient.api.SkuDetails
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ui.DefaultTimeBar
 import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.video.VideoListener
 import com.google.android.play.core.review.ReviewManagerFactory
-import com.otaliastudios.zoom.ZoomSurfaceView
 import com.tatoeapps.tracktimer.BuildConfig
 import com.tatoeapps.tracktimer.R
 import com.tatoeapps.tracktimer.R.id
@@ -44,10 +42,8 @@ import com.tatoeapps.tracktimer.fragments.StartFragment
 import com.tatoeapps.tracktimer.interfaces.ActionButtonsInterface
 import com.tatoeapps.tracktimer.interfaces.GuideInterface
 import com.tatoeapps.tracktimer.interfaces.SpeedSliderInterface
-import com.tatoeapps.tracktimer.utils.BillingClientLifecycle
-import com.tatoeapps.tracktimer.utils.DialogsCreatorObject
-import com.tatoeapps.tracktimer.utils.TimeSplitsController
-import com.tatoeapps.tracktimer.utils.Utils
+import com.tatoeapps.tracktimer.interfaces.TestInterface
+import com.tatoeapps.tracktimer.utils.*
 import com.tatoeapps.tracktimer.viewmodel.MainViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.exo_player_control_view.*
@@ -73,16 +69,8 @@ class MainActivity : AppCompatActivity(),
     private var hasPermissions = false
     private val PERMISSION_REQUEST_CODE = 123
 
-    private var hasVideo = false
-    private var isPlayingVideo = false
+    private var videoPlayerController = VideoPlayerController()
 
-    private var task: Runnable? = null
-    private var speedFactor = defaultSpeedFactor
-
-    private var firstNextFrameSkip = true
-    private var videoFrameRate: Float = 0F
-
-    private var isOnboardingOn = false
     private var hasMediaLoaded = false
 
     private var timeSplitsController: TimeSplitsController? = null
@@ -100,18 +88,12 @@ class MainActivity : AppCompatActivity(),
         mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
         if (Utils.isUserFirstTimer(this)) {
-//            isOnboardingOn = true
             startActivity(Intent(this, OnBoardingActivity::class.java))
         } else {
-//            isOnboardingOn = false
             setContentView(layout.activity_main)
 
             checkPermissions()
             setUpSystemUiVisibilityListener()
-
-            supportFragmentManager.beginTransaction()
-                .hide(supportFragmentManager.findFragmentById(id.guide_frag) as GuideFragment)
-                .commit()
 
             setUpPlayer()
             hideBuffering()
@@ -133,9 +115,10 @@ class MainActivity : AppCompatActivity(),
     override fun onResume() {
         setUpFullScreen()
         //check if screen is black so first check if start fragment isn't visible + exoplayer is instanced (not onboarding) + exo has a media item (not on start fragment)
-        if (hasMediaLoaded && exoPlayer?.currentMediaItem == null) {
-            Toast.makeText(this,"IS THERE BLACK SCREEN?", Toast.LENGTH_SHORT).show()
-        }
+//        if (hasMediaLoaded && exoPlayer?.currentMediaItem == null) {
+//            //todo see if this works to detect a bug - so far no
+//            Toast.makeText(this, "IS THERE BLACK SCREEN?", Toast.LENGTH_SHORT).show()
+//        }
         super.onResume()
     }
 
@@ -154,7 +137,8 @@ class MainActivity : AppCompatActivity(),
                     }
                 }
 
-            val suggestRateAppDialog = DialogsCreatorObject.getRatingPromptDialog(this, dialogWindowInterface)
+            val suggestRateAppDialog =
+                DialogsCreatorObject.getRatingPromptDialog(this, dialogWindowInterface)
             suggestRateAppDialog.setCancelable(true)
             suggestRateAppDialog.show()
         }
@@ -168,10 +152,11 @@ class MainActivity : AppCompatActivity(),
                 val reviewInfo = reviewRequest.result
                 val flow = manager.launchReviewFlow(this, reviewInfo)
                 flow.addOnCompleteListener { _ ->
-                    Utils.updateHasUserReviewedApp(this,true)
+                    Utils.updateHasUserReviewedApp(this, true)
                 }
             }
-        }    }
+        }
+    }
 
     /**
      * From implicit intent
@@ -180,12 +165,12 @@ class MainActivity : AppCompatActivity(),
     private fun loadVideoFromImplicitIntent(data: Uri?) {
         updateFreeTrialInfo()
         timeSplitsController = TimeSplitsController()
-        hasMediaLoaded=true
+        hasMediaLoaded = true
 
         toggleTimingContainerVisibility(false)
-        prepareVideoSource(MediaItem.fromUri(data!!))
-        configureExoPlayerButtons(data)
+        preparePlayerForNewVideo(data)
     }
+
 
     /**
      * Purchase subscription
@@ -279,8 +264,6 @@ class MainActivity : AppCompatActivity(),
 
             }
         )
-
-
     }
 
     private fun getSubscriptionDialog() {
@@ -315,24 +298,12 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    /**
-     * Guide interface
-     */
-
-    override fun hideGuideFragment() {
-        //hide the fragment
-        toggleFragmentsVisibility(
-            false,
-            supportFragmentManager.findFragmentById(id.guide_frag) as GuideFragment
-        )
-    }
-
 
     /**
      * Speed slider interface
      */
     override fun setSpeed(newValue: Float) {
-        changeSpeed(newValue / 100)
+        videoPlayerController.setSpeed(newValue / 100)
     }
 
     /**
@@ -406,7 +377,7 @@ class MainActivity : AppCompatActivity(),
     fun startTiming() {
         toggleTimingContainerVisibility(true)
         updateLapsText(
-            Utils.floatToStartString(timeSplitsController!!.startTiming(exoPlayer!!.currentPosition)),
+            Utils.floatToStartString(timeSplitsController!!.startTiming(videoPlayerController.getCurrentPosition())),
             true
         )
     }
@@ -414,7 +385,7 @@ class MainActivity : AppCompatActivity(),
     override fun lapTiming() {
         if (timeSplitsController != null && timeSplitsController!!.isActive) {
             updateLapsText(
-                Utils.pairFloatToLapString(timeSplitsController!!.doLap(exoPlayer!!.currentPosition)),
+                Utils.pairFloatToLapString(timeSplitsController!!.doLap(videoPlayerController.getCurrentPosition())),
                 false
             )
         }
@@ -423,7 +394,7 @@ class MainActivity : AppCompatActivity(),
     override fun stopTiming() {
         if (timeSplitsController != null && timeSplitsController!!.isActive) {
             updateLapsText(
-                Utils.pairFloatToLapString(timeSplitsController!!.stopTiming(exoPlayer!!.currentPosition)),
+                Utils.pairFloatToLapString(timeSplitsController!!.stopTiming(videoPlayerController.getCurrentPosition())),
                 false
             )
         }
@@ -447,8 +418,8 @@ class MainActivity : AppCompatActivity(),
      */
 
     private fun intentPickMedia() {
-        if (exoPlayer!!.isPlaying) {
-            exoPlayer!!.playWhenReady = false
+        if (videoPlayerController.isPlaying) {
+            videoPlayerController.stopPlaying()
         }
         val intent = Intent(
             Intent.ACTION_OPEN_DOCUMENT,
@@ -470,162 +441,83 @@ class MainActivity : AppCompatActivity(),
             hideStartFragment()
             toggleTimingContainerVisibility(false)
 
-            prepareVideoSource(MediaItem.fromUri(data!!.data!!))
-            configureExoPlayerButtons(data.data!!)
-            //todo do this with observers - check when result is ok and then trigger all this - ARCHITECHTURE
-            hasMediaLoaded=true
+            preparePlayerForNewVideo(data!!.data!!)
+            hasMediaLoaded = true
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    private fun changeSpeed(newSpeed: Float) {
-        speedFactor = newSpeed
-        val playbackParameters = PlaybackParameters(speedFactor)
-        exoPlayer!!.setPlaybackParameters(playbackParameters)
-    }
-
     private fun showGuideWindow() {
-        toggleFragmentsVisibility(
-            true,
-            supportFragmentManager.findFragmentById(id.guide_frag) as GuideFragment,
-            true
-        )
+        getGuideFragment()
     }
 
     /**
      * EXOPLAYER STUFF
      */
 
-    private val playerStateListener = object : Player.EventListener {
-        override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-            when (playbackState) {
-                Player.STATE_READY -> {
-                    task = Runnable {
-                        exoPlayer!!.playWhenReady = true
-                        firstNextFrameSkip = true
-                    }
-                }
-                Player.STATE_ENDED -> {
-                    showActionFragments(true)
-                }
-                Player.STATE_BUFFERING -> {
-                }
-                Player.STATE_IDLE -> {
-                }
-            }
-        }
-
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            isPlayingVideo = isPlaying
-            if (isPlaying) {
-                firstNextFrameSkip = true
-            }
-        }
+    private fun preparePlayerForNewVideo(data: Uri?) {
+        prepareVideoSource(MediaItem.fromUri(data!!))
+        configureExoPlayerButtons(data)
+        resetPlaybackSpeed()
     }
 
     private fun setUpPlayer() {
+        exoPlayer = mainViewModel.getExoPlayerInstance(this)
+        dataSourceFactory = mainViewModel.getDataSourceFactoryInstance(this, application)
 
-        exoPlayer = Utils.getExoPlayerInstance(this)
-        val playerControls = player_controls
-        val surface = surface_view
+        mainViewModel.configurePlayerVideoListener(exoPlayer!!, surface_view)
+        mainViewModel.configureVideoSurface(exoPlayer!!, surface_view, this)
+        mainViewModel.configurePlayerControls(exoPlayer!!, player_controls)
 
+        videoPlayerController.initialize(exoPlayer!!, dataSourceFactory,
+            object : TestInterface {
+                override fun mediaFinished() {
+                    showActionFragments(true)
+                }
+            })
+    }
 
-        exoPlayer!!.addVideoListener(object : VideoListener {
-            override fun onVideoSizeChanged(
-                width: Int,
-                height: Int,
-                unappliedRotationDegrees: Int,
-                pixelWidthHeightRatio: Float
-            ) {
-                surface.setContentSize(width.toFloat(), height.toFloat())
-            }
-        })
-        surface.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAccent))
-        surface.addCallback(object : ZoomSurfaceView.Callback {
-            override fun onZoomSurfaceCreated(view: ZoomSurfaceView) {
-                exoPlayer!!.setVideoSurface(view.surface)
-            }
-
-            override fun onZoomSurfaceDestroyed(view: ZoomSurfaceView) {
-            }
-        })
-
-        playerControls.player = exoPlayer
-        playerControls.show()
-
-
-        exoPlayer!!.addListener(playerStateListener)
-        exoPlayer!!.setSeekParameters(SeekParameters.EXACT) //this is the default anyway
-
-        dataSourceFactory = Utils.getDataSourceFactoryInstance(this, application)
+    private fun resetPlaybackSpeed() {
+        //not the best way of communicating, it shouldnt be through the view but through the viewmodel
+        (supportFragmentManager.findFragmentById(id.speedSlider_frag) as SpeedSliderFragment).resetSpeed()
     }
 
     private fun configureExoPlayerButtons(mediaUri: Uri) {
-        val videoSkipDefaultMs = 5000
-        videoFrameRate = Utils.getFrameRateOfVideo(this, mediaUri)
-
-        //reset Speed -> Speed slider frag
-        (supportFragmentManager.findFragmentById(id.speedSlider_frag) as SpeedSliderFragment).resetSpeed()
+        videoPlayerController.configureExoPlayerButtonsActions(this, mediaUri)
 
         custom_forward.setOnClickListener {
-            exoPlayer!!.seekTo(exoPlayer!!.currentPosition + (videoSkipDefaultMs * speedFactor).toLong())
+            videoPlayerController.mediaPlayerCustomActions.goForward()
         }
         custom_rewind.setOnClickListener {
-            val rewindPosition =
-                if (exoPlayer!!.currentPosition - (videoSkipDefaultMs * speedFactor) < 0) {
-                    0L
-                } else {
-                    exoPlayer!!.currentPosition - (videoSkipDefaultMs * speedFactor).toLong()
-                }
-            exoPlayer!!.seekTo(rewindPosition)
+            videoPlayerController.mediaPlayerCustomActions.goRewind()
         }
-
         next_frame_btn.setOnClickListener {
-            if (!isPlayingVideo) {
-                //if first next frame skip is true, it needs frame correcting - see issue #18
-                val newPosition = Utils.getPositionOfNextFrame(
-                    exoPlayer!!.currentPosition,
-                    videoFrameRate,
-                    firstNextFrameSkip
-                )
-                firstNextFrameSkip = false
-                exoPlayer!!.seekTo(newPosition)
-            }
+            videoPlayerController.mediaPlayerCustomActions.goNextFrame()
         }
         previous_frame_btn.setOnClickListener {
-            if (!isPlayingVideo) {
-                exoPlayer!!.seekTo(
-                    Utils.getPositionOfPreviousFrame(
-                        exoPlayer!!.currentPosition,
-                        videoFrameRate
-                    )
-                )
-            }
+            videoPlayerController.mediaPlayerCustomActions.goPreviousFrame()
         }
-
     }
 
     private fun prepareVideoSource(mediaItem: MediaItem) {
-        val videoSource = Utils.getVideoSource(mediaItem, dataSourceFactory)
-
-        exoPlayer!!.setMediaSource(videoSource)
-        exoPlayer!!.prepare()
-        hasVideo = true
+        videoPlayerController.prepareVideoSource(mediaItem)
     }
 
     override fun onPause() {
-        exoPlayer?.playWhenReady = false
+        videoPlayerController.stopPlaying()
         super.onPause()
     }
 
     override fun onDestroy() {
-        exoPlayer?.stop()
-        exoPlayer?.release()
+        videoPlayerController.stopAndRelease()
         super.onDestroy()
     }
 
     override fun onBackPressed() {
-        if (intent?.action == Intent.ACTION_VIEW || areFragmentsInBackstack() || supportFragmentManager.findFragmentById(id.start_fragment_container)!!.isVisible) {
+        if (intent?.action == Intent.ACTION_VIEW || areFragmentsInBackstack() || supportFragmentManager.findFragmentById(
+                id.full_screen_container
+            )!!.isVisible
+        ) {
             super.onBackPressed()
         } else {
             val dialogBuilder = AlertDialog.Builder(this)
@@ -633,11 +525,11 @@ class MainActivity : AppCompatActivity(),
                 .setPositiveButton(
                     "Yes"
                 ) { _, _ ->
-                    exoPlayer?.playWhenReady = false
-                    hasMediaLoaded=false
+                    videoPlayerController.stopPlaying()
+                    hasMediaLoaded = false
                     toggleFragmentsVisibility(
                         true,
-                        supportFragmentManager.findFragmentById(id.start_fragment_container) as StartFragment
+                        supportFragmentManager.findFragmentById(id.full_screen_container) as StartFragment
                     )
                 }
                 .setNegativeButton("No", null)
@@ -668,7 +560,7 @@ class MainActivity : AppCompatActivity(),
     private fun hideStartFragment() {
         if (intent?.action != Intent.ACTION_VIEW) {
             supportFragmentManager.beginTransaction()
-                .hide(supportFragmentManager.findFragmentById(id.start_fragment_container) as StartFragment)
+                .hide(supportFragmentManager.findFragmentById(id.full_screen_container) as StartFragment)
                 .commitAllowingStateLoss()
         }
     }
@@ -676,9 +568,31 @@ class MainActivity : AppCompatActivity(),
     private fun getStartFragment() {
         supportFragmentManager.beginTransaction()
             .add(
-                id.start_fragment_container,
+                id.full_screen_container,
                 StartFragment()
             ).commit()
+    }
+
+    private fun getGuideFragment() {
+        val fragTransaction = supportFragmentManager.beginTransaction()
+
+        fragTransaction.setCustomAnimations(
+            R.anim.slide_right_to_left,
+            R.anim.slide_left_to_right,
+            R.anim.slide_right_to_left,
+            R.anim.slide_left_to_right
+        )
+
+        fragTransaction.add(
+            id.full_screen_container,
+            GuideFragment()
+        ).addToBackStack("guide_frag").commit()
+    }
+
+
+    //  Guide Fragment interface
+    override fun hideGuideFragment() {
+        super.onBackPressed()
     }
 
     private fun toggleTimingContainerVisibility(isVisible: Boolean) {
@@ -765,29 +679,11 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun setUpFullScreen() {
-
-        window.decorView.systemUiVisibility =
-                //this one does immersive mode
-            (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    // Set the content to appear under the system bars so that the
-                    // content doesn't resize when the system bars hide and show.
-                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    //These hide nav and status bar
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN)
+        mainViewModel.setUpFullScreen(window.decorView)
     }
 
     private fun setUpSystemUiVisibilityListener() {
-        window.decorView.setOnSystemUiVisibilityChangeListener { visibility ->
-            //basically, if a system component becomes visible, it will restore the immersive sticky state
-
-            //this condition checks the visibility, if ==0 then something is visible - from developer docs
-            if (visibility and View.SYSTEM_UI_FLAG_FULLSCREEN == 0) {
-                setUpFullScreen()
-            }
-        }
+        mainViewModel.setUpSystemUIVisibilityListener(window.decorView)
     }
 
     /**
@@ -836,7 +732,6 @@ class MainActivity : AppCompatActivity(),
     inner class MyGestureListener : GestureDetector.SimpleOnGestureListener() {
 
         override fun onSingleTapUp(e: MotionEvent?): Boolean {
-            Timber.d("GESTURE - se ha tocado una vez: ")
             val show =
                 (supportFragmentManager.findFragmentById(id.actionBtns_frag) as ActionButtonsFragment).isHidden
             showActionFragments(show)

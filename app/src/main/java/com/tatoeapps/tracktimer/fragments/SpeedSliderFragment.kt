@@ -6,9 +6,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.slider.Slider
 import com.tatoeapps.tracktimer.R
 import com.tatoeapps.tracktimer.interfaces.SpeedSliderInterface
+import com.tatoeapps.tracktimer.viewmodel.MainViewModel
 import kotlinx.android.synthetic.main.fragment_speed_btns.*
 import kotlinx.android.synthetic.main.fragment_speed_btns.view.*
 
@@ -22,6 +25,7 @@ class SpeedSliderFragment : Fragment() {
     }
 
     private lateinit var speedSliderInterface: SpeedSliderInterface
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -64,6 +68,7 @@ class SpeedSliderFragment : Fragment() {
                 speedSliderInterface.setSpeed(newSpeed)
             }
         }
+
     }
 
     override fun onAttach(context: Context) {
