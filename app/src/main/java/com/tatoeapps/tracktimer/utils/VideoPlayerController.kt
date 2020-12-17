@@ -13,6 +13,18 @@ import com.tatoeapps.tracktimer.interfaces.TestInterface
 
 class VideoPlayerController {
 
+    /**
+     * Bit of explaining, this class requires an exoplayer instance, a dataSourceFactory and a TestInterface
+     *
+     * It will handle
+     * - preparingvideosource
+     * - getCurrentPosition
+     * - configure the custom actions of the player controls e.g. forward, rewind, next/previous frame
+     * - stop/play video
+     * - set speed of playback
+     * - listener for player state - READY, END, BUFFERING, IDLE...
+     */
+
     val isPlaying: Boolean = false
     private lateinit var mExoPlayer: SimpleExoPlayer
     private lateinit var mDataSourceFactory: DataSource.Factory
@@ -20,9 +32,9 @@ class VideoPlayerController {
     private var firstNextFrameSkip = true
     private var videoFrameRate: Float = 0F
     private var speedFactor = SpeedSliderFragment.defaultSpeedFactor
-    private var currentPosition = 0L
+//    private var currentPosition = 0L
 
-    lateinit var mediaPlayerCustomActions:MediaPlayerCustomActions
+    lateinit var mediaPlayerCustomActions: MediaPlayerCustomActions
     lateinit var testInterface: TestInterface
 
     private var hasVideo = false
@@ -30,7 +42,11 @@ class VideoPlayerController {
 
     val videoSkipDefaultMs = 5000
 
-    fun initialize(exoPlayer: SimpleExoPlayer, dataSourceFactory: DataSource.Factory, mInterface: TestInterface) {
+    fun initialize(
+        exoPlayer: SimpleExoPlayer,
+        dataSourceFactory: DataSource.Factory,
+        mInterface: TestInterface
+    ) {
         mExoPlayer = exoPlayer
         mDataSourceFactory = dataSourceFactory
         testInterface = mInterface
@@ -45,14 +61,14 @@ class VideoPlayerController {
         hasVideo = true
     }
 
-    fun getCurrentPosition():Long {
-        return currentPosition
+    fun getCurrentPosition(): Long {
+        return mExoPlayer.currentPosition
     }
 
     fun configureExoPlayerButtonsActions(context: Context, mediaUri: Uri) {
         videoFrameRate = Utils.getFrameRateOfVideo(context, mediaUri)
 
-       mediaPlayerCustomActions = object : MediaPlayerCustomActions {
+        mediaPlayerCustomActions = object : MediaPlayerCustomActions {
             override fun goForward() {
                 mExoPlayer.seekTo(mExoPlayer.currentPosition + (videoSkipDefaultMs * speedFactor).toLong())
             }
@@ -94,7 +110,9 @@ class VideoPlayerController {
     }
 
     fun stopPlaying() {
-        mExoPlayer.playWhenReady = false
+        if (isPlaying) {
+            mExoPlayer.playWhenReady = false
+        }
     }
 
     fun stopAndRelease() {
@@ -118,7 +136,6 @@ class VideoPlayerController {
                     }
                 }
                 Player.STATE_ENDED -> {
-                    //todo interface probs
                     testInterface.mediaFinished()
                 }
                 Player.STATE_BUFFERING -> {
@@ -135,8 +152,6 @@ class VideoPlayerController {
             }
         }
     }
-
-
 
 
 }

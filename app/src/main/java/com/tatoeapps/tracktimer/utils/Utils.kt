@@ -98,6 +98,7 @@ object Utils {
     private const val MILLIS_IN_ONE_DAY = 86400000
 
     fun shouldShowRatingPrompt(context: Context, currentSystemTimeInMillis: Long): Boolean {
+        return true
         if (hasUserReviewedApp(context)) {
             return false
         }

@@ -20,7 +20,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.GestureDetectorCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProviders
@@ -37,7 +36,6 @@ import com.tatoeapps.tracktimer.R.layout
 import com.tatoeapps.tracktimer.fragments.ActionButtonsFragment
 import com.tatoeapps.tracktimer.fragments.GuideFragment
 import com.tatoeapps.tracktimer.fragments.SpeedSliderFragment
-import com.tatoeapps.tracktimer.fragments.SpeedSliderFragment.Companion.defaultSpeedFactor
 import com.tatoeapps.tracktimer.fragments.StartFragment
 import com.tatoeapps.tracktimer.interfaces.ActionButtonsInterface
 import com.tatoeapps.tracktimer.interfaces.GuideInterface
@@ -57,7 +55,6 @@ class MainActivity : AppCompatActivity(),
     SpeedSliderInterface,
     GuideInterface {
 
-    private lateinit var mDetector: GestureDetectorCompat
 
     private var exoPlayer: SimpleExoPlayer? = null
     private lateinit var dataSourceFactory: DataSource.Factory
@@ -82,6 +79,7 @@ class MainActivity : AppCompatActivity(),
             Timber.plant(Timber.DebugTree())
         }
 
+        //todo check this out too
         billingClientLifecycle = BillingClientLifecycle.getInstance(application, this, lifecycle)
         billingClientLifecycle.create(true)
 
@@ -97,7 +95,8 @@ class MainActivity : AppCompatActivity(),
 
             setUpPlayer()
             hideBuffering()
-            setUserScreenTapListener()
+
+            setUserGestureListener()
             addObservers()
 
             if (savedInstanceState == null) {
@@ -125,37 +124,13 @@ class MainActivity : AppCompatActivity(),
     /**
      * Prompting user to rate app
      */
-
+//todo next.
     private fun promptAppRatingToUser() {
-        if (Utils.shouldShowRatingPrompt(this, System.currentTimeMillis())) {
-
-            val dialogWindowInterface =
-                object : DialogsCreatorObject.DialogWindowInterface {
-                    override fun onPositiveButton() {
-                        showAppReviewToUser()
-                        super.onPositiveButton()
-                    }
-                }
-
-            val suggestRateAppDialog =
-                DialogsCreatorObject.getRatingPromptDialog(this, dialogWindowInterface)
-            suggestRateAppDialog.setCancelable(true)
-            suggestRateAppDialog.show()
-        }
+        mainViewModel.promptAppRatingToUser(this)
     }
 
     private fun showAppReviewToUser() {
-        val manager = ReviewManagerFactory.create(this)
-        val request = manager.requestReviewFlow()
-        request.addOnCompleteListener { reviewRequest ->
-            if (reviewRequest.isSuccessful) {
-                val reviewInfo = reviewRequest.result
-                val flow = manager.launchReviewFlow(this, reviewInfo)
-                flow.addOnCompleteListener { _ ->
-                    Utils.updateHasUserReviewedApp(this, true)
-                }
-            }
-        }
+        mainViewModel.showAppReviewToUser(this)
     }
 
     /**
@@ -264,7 +239,24 @@ class MainActivity : AppCompatActivity(),
 
             }
         )
+
+        mainViewModel.toggleFragmentsVisibility.observe(
+            this,
+            androidx.lifecycle.Observer { toggleVisibility ->
+                if (toggleVisibility) {
+                    showActionFragments(!areFragmentPanelsVisible())
+                }
+            })
+
+        mainViewModel.promptAppRatingToUser.observe(
+            this,
+            androidx.lifecycle.Observer { promptRating ->
+                if (promptRating) {
+                    showAppReviewToUser()
+                }
+            })
     }
+
 
     private fun getSubscriptionDialog() {
         //trigger the loading window as
@@ -542,6 +534,10 @@ class MainActivity : AppCompatActivity(),
      * EVERYTHING UNDER HERE IS RELATED TO APP **UI** (OR SHOULD BE)
      */
 
+    private fun areFragmentPanelsVisible(): Boolean {
+        return (supportFragmentManager.findFragmentById(R.id.actionBtns_frag) as ActionButtonsFragment).isVisible
+    }
+
     private fun areFragmentsInBackstack(): Boolean {
         return supportFragmentManager.backStackEntryCount > 0
     }
@@ -603,11 +599,8 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    private fun setUserScreenTapListener() {
-        mDetector = GestureDetectorCompat(this, MyGestureListener())
-        surface_view.setOnTouchListener { _, p1 -> mDetector.onTouchEvent(p1) }
-        surface_view.setMaxZoom(5f)
-        Timber.d("GESTURE - max zoom: ${surface_view.getMaxZoom()}")
+    private fun setUserGestureListener() {
+        mainViewModel.setUserGestureListener(surface_view, this)
     }
 
     private fun showActionFragments(show: Boolean) {
@@ -727,16 +720,4 @@ class MainActivity : AppCompatActivity(),
             }
         }
     }
-
-
-    inner class MyGestureListener : GestureDetector.SimpleOnGestureListener() {
-
-        override fun onSingleTapUp(e: MotionEvent?): Boolean {
-            val show =
-                (supportFragmentManager.findFragmentById(id.actionBtns_frag) as ActionButtonsFragment).isHidden
-            showActionFragments(show)
-            return true
-        }
-    }
-
 }

@@ -2,23 +2,24 @@ package com.tatoeapps.tracktimer.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
+import androidx.core.view.GestureDetectorCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SeekParameters
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ui.PlayerControlView
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.video.VideoListener
+import com.google.android.play.core.review.ReviewManagerFactory
 import com.otaliastudios.zoom.ZoomSurfaceView
 import com.tatoeapps.tracktimer.R
-import com.tatoeapps.tracktimer.fragments.SpeedSliderFragment
+import com.tatoeapps.tracktimer.main.MainActivity
+import com.tatoeapps.tracktimer.utils.DialogsCreatorObject
 import com.tatoeapps.tracktimer.utils.Utils
-import com.tatoeapps.tracktimer.utils.VideoPlayerController
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -48,6 +49,8 @@ class MainViewModel() : ViewModel() {
 
 
     val isConnectingToGooglePlay = MutableLiveData<Boolean>(false)
+    val toggleFragmentsVisibility = MutableLiveData<Boolean>(false)
+    val promptAppRatingToUser = MutableLiveData<Boolean>(false)
 
     /**
     Register a listener in case there is a system UI visibility change like a notification or user tapping the support/action bar
@@ -97,7 +100,10 @@ class MainViewModel() : ViewModel() {
         return exoPlayer
     }
 
-    fun getDataSourceFactoryInstance(context: Context, application: Application): DataSource.Factory {
+    fun getDataSourceFactoryInstance(
+        context: Context,
+        application: Application
+    ): DataSource.Factory {
         return Utils.getDataSourceFactoryInstance(context, application)
     }
 
@@ -118,9 +124,14 @@ class MainViewModel() : ViewModel() {
     /**
     Configure exoplayer surface for the zoomable surface component
      */
-    fun configureVideoSurface(exoPlayer: SimpleExoPlayer, surface: ZoomSurfaceView, context: Context) {
+    fun configureVideoSurface(
+        exoPlayer: SimpleExoPlayer,
+        surface: ZoomSurfaceView,
+        context: Context
+    ) {
 
         surface.setBackgroundColor(ContextCompat.getColor(context, R.color.colorAccent))
+        surface.setMaxZoom(5f)
 
         surface.addCallback(object : ZoomSurfaceView.Callback {
             override fun onZoomSurfaceCreated(view: ZoomSurfaceView) {
@@ -137,7 +148,56 @@ class MainViewModel() : ViewModel() {
         playerControls.show()
     }
 
+    /**
+     * USER GESTURE DETECTOR STUFF
+     */
 
+    fun setUserGestureListener(surfaceView: ZoomSurfaceView, context: Context) {
+        val mDetector = GestureDetectorCompat(context, MyGestureListener())
+        surfaceView.setOnTouchListener { _, p1 -> mDetector.onTouchEvent(p1) }
+    }
+
+
+    inner class MyGestureListener : GestureDetector.SimpleOnGestureListener() {
+        override fun onSingleTapUp(e: MotionEvent?): Boolean {
+            toggleFragmentsVisibility.postValue(true)
+            return true
+        }
+    }
+
+    /**
+     * PROMPT USER APP RATING
+     */
+    fun promptAppRatingToUser(mainActivity: MainActivity) {
+        if (Utils.shouldShowRatingPrompt(mainActivity, System.currentTimeMillis())) {
+            val dialogWindowInterface =
+                object : DialogsCreatorObject.DialogWindowInterface {
+                    override fun onPositiveButton() {
+                        promptAppRatingToUser.postValue(true)
+                        super.onPositiveButton()
+                    }
+                }
+
+            val suggestRateAppDialog =
+                DialogsCreatorObject.getRatingPromptDialog(mainActivity, dialogWindowInterface)
+            suggestRateAppDialog.setCancelable(true)
+            suggestRateAppDialog.show()
+        }
+    }
+
+    fun showAppReviewToUser(mainActivity: MainActivity) {
+        val manager = ReviewManagerFactory.create(mainActivity)
+        val request = manager.requestReviewFlow()
+        request.addOnCompleteListener { reviewRequest ->
+            if (reviewRequest.isSuccessful) {
+                val reviewInfo = reviewRequest.result
+                val flow = manager.launchReviewFlow(mainActivity, reviewInfo)
+                flow.addOnCompleteListener { _ ->
+                    Utils.updateHasUserReviewedApp(mainActivity, true)
+                }
+            }
+        }
+    }
 
 
 }
