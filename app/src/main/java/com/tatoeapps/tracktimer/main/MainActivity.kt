@@ -124,7 +124,7 @@ class MainActivity : AppCompatActivity(),
     /**
      * Prompting user to rate app
      */
-//todo next.
+
     private fun promptAppRatingToUser() {
         mainViewModel.promptAppRatingToUser(this)
     }
