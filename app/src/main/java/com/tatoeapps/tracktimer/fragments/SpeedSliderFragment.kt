@@ -25,6 +25,15 @@ class SpeedSliderFragment : Fragment() {
     }
 
     private lateinit var speedSliderInterface: SpeedSliderInterface
+    private lateinit var mainViewModel: MainViewModel
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        mainViewModel = activity?.run {
+            ViewModelProviders.of(this)[MainViewModel::class.java]
+        } ?: throw Exception("Invalid Activity")
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -68,6 +77,12 @@ class SpeedSliderFragment : Fragment() {
                 speedSliderInterface.setSpeed(newSpeed)
             }
         }
+
+        mainViewModel.speedReset.observe(viewLifecycleOwner, Observer { speedReset ->
+            if (speedReset) {
+                resetSpeed()
+            }
+        })
 
     }
 

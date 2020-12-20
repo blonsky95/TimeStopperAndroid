@@ -9,9 +9,7 @@ import android.provider.MediaStore
 import android.transition.Slide
 import android.transition.Transition
 import android.transition.TransitionManager
-import android.view.GestureDetector
 import android.view.Gravity
-import android.view.MotionEvent
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -25,10 +23,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProviders
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.SkuDetails
-import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ui.DefaultTimeBar
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.play.core.review.ReviewManagerFactory
 import com.tatoeapps.tracktimer.BuildConfig
 import com.tatoeapps.tracktimer.R
 import com.tatoeapps.tracktimer.R.id
@@ -39,14 +34,13 @@ import com.tatoeapps.tracktimer.fragments.SpeedSliderFragment
 import com.tatoeapps.tracktimer.fragments.StartFragment
 import com.tatoeapps.tracktimer.interfaces.ActionButtonsInterface
 import com.tatoeapps.tracktimer.interfaces.GuideInterface
+import com.tatoeapps.tracktimer.interfaces.MediaPlayerCustomActions
 import com.tatoeapps.tracktimer.interfaces.SpeedSliderInterface
-import com.tatoeapps.tracktimer.interfaces.TestInterface
 import com.tatoeapps.tracktimer.utils.*
 import com.tatoeapps.tracktimer.viewmodel.MainViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.exo_player_control_view.*
 import timber.log.Timber
-import java.util.*
 
 
 class MainActivity : AppCompatActivity(),
@@ -55,9 +49,6 @@ class MainActivity : AppCompatActivity(),
     SpeedSliderInterface,
     GuideInterface {
 
-
-    private var exoPlayer: SimpleExoPlayer? = null
-    private lateinit var dataSourceFactory: DataSource.Factory
     lateinit var mainViewModel: MainViewModel
 
     //class that does all the billing - google pay subscriptions and related
@@ -65,12 +56,6 @@ class MainActivity : AppCompatActivity(),
 
     private var hasPermissions = false
     private val PERMISSION_REQUEST_CODE = 123
-
-    private var videoPlayerController = VideoPlayerController()
-
-    private var hasMediaLoaded = false
-
-    private var timeSplitsController: TimeSplitsController? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -138,12 +123,7 @@ class MainActivity : AppCompatActivity(),
      */
 
     private fun loadVideoFromImplicitIntent(data: Uri?) {
-        updateFreeTrialInfo()
-        timeSplitsController = TimeSplitsController()
-        hasMediaLoaded = true
-
-        toggleTimingContainerVisibility(false)
-        preparePlayerForNewVideo(data)
+        mainViewModel.prepareForNewVideo(this, data)
     }
 
 
@@ -158,6 +138,81 @@ class MainActivity : AppCompatActivity(),
     private var unsubscribedAlertDialog: android.app.AlertDialog? = null
 
     private fun addObservers() {
+        mainViewModel.fragmentsVisibilityAction.observe(
+            this,
+            androidx.lifecycle.Observer { action ->
+                when (action) {
+                    Utils.VISIBILITY_TOGGLE -> showActionFragments(!areFragmentPanelsVisible())
+                    Utils.VISIBILITY_SHOW -> showActionFragments(true)
+                    Utils.VISIBILITY_HIDE -> showActionFragments(false)
+                }
+            })
+
+        mainViewModel.timingVisibilityAction.observe(
+            this,
+            androidx.lifecycle.Observer { action ->
+                when (action) {
+                    Utils.VISIBILITY_TOGGLE -> changeVisibilityTimingContainer(!areFragmentPanelsVisible())
+                    Utils.VISIBILITY_SHOW -> changeVisibilityTimingContainer(true)
+                    Utils.VISIBILITY_HIDE -> changeVisibilityTimingContainer(false)
+                }
+            })
+
+        mainViewModel.promptAppRatingToUser.observe(
+            this,
+            androidx.lifecycle.Observer { promptRating ->
+                if (promptRating) {
+                    showAppReviewToUser()
+                }
+            })
+
+        mainViewModel.timingDisplayText.observe(
+            this,
+            androidx.lifecycle.Observer { newTimingDisplayText ->
+                if (newTimingDisplayText.isNotEmpty()) {
+                    timing_display.text = newTimingDisplayText
+                }
+            })
+
+        mainViewModel.customPlayerControlActions.observe(
+            this,
+            androidx.lifecycle.Observer { playerControlsInterface ->
+                if (playerControlsInterface != null) {
+                    setPlayerControlsInterface(playerControlsInterface)
+                }
+            })
+
+        mainViewModel.showSubscriptionDialog.observe(
+            this,
+            androidx.lifecycle.Observer { showSubscriptionDialog ->
+                if (showSubscriptionDialog) {
+                    getSubscriptionDialog()
+                }
+            })
+
+        //when this value is triggered - if true, it displays the loading (connecting to google pay) dialog, if false, it dismisses it
+        //this dialog window is not cancelable, but has a CANCEL button, which will kill the google pay connection and remove the loading screen
+        mainViewModel.isConnectingToGooglePlay.observe(
+            this,
+            androidx.lifecycle.Observer<Boolean> { isConnecting ->
+                if (!isConnecting) {
+                    loadingAlertDialog?.dismiss()
+                } else {
+                    val dialogWindowInterface =
+                        object : DialogsCreatorObject.DialogWindowInterface {
+                            override fun onCancelButton() {
+                                billingClientLifecycle.destroy()
+                                mainViewModel.isConnectingToGooglePlay.postValue(false)
+                            }
+                        }
+
+                    loadingAlertDialog =
+                        DialogsCreatorObject.getLoadingDialog(this, dialogWindowInterface)
+                    loadingAlertDialog!!.show()
+                }
+
+            }
+        )
 
         //when this value is triggered - a subscription query has been made and results are brought back
         billingClientLifecycle.skusWithSkuDetails.observe(
@@ -216,45 +271,7 @@ class MainActivity : AppCompatActivity(),
             }
         )
 
-        //when this value is triggered - if true, it displays the loading (connecting to google pay) dialog, if false, it dismisses it
-        //this dialog window is not cancelable, but has a CANCEL button, which will kill the google pay connection and remove the loading screen
-        mainViewModel.isConnectingToGooglePlay.observe(
-            this,
-            androidx.lifecycle.Observer<Boolean> { isConnecting ->
-                if (!isConnecting) {
-                    loadingAlertDialog?.dismiss()
-                } else {
-                    val dialogWindowInterface =
-                        object : DialogsCreatorObject.DialogWindowInterface {
-                            override fun onCancelButton() {
-                                billingClientLifecycle.destroy()
-                                mainViewModel.isConnectingToGooglePlay.postValue(false)
-                            }
-                        }
 
-                    loadingAlertDialog =
-                        DialogsCreatorObject.getLoadingDialog(this, dialogWindowInterface)
-                    loadingAlertDialog!!.show()
-                }
-
-            }
-        )
-
-        mainViewModel.toggleFragmentsVisibility.observe(
-            this,
-            androidx.lifecycle.Observer { toggleVisibility ->
-                if (toggleVisibility) {
-                    showActionFragments(!areFragmentPanelsVisible())
-                }
-            })
-
-        mainViewModel.promptAppRatingToUser.observe(
-            this,
-            androidx.lifecycle.Observer { promptRating ->
-                if (promptRating) {
-                    showAppReviewToUser()
-                }
-            })
     }
 
 
@@ -265,37 +282,11 @@ class MainActivity : AppCompatActivity(),
         billingClientLifecycle.create()
     }
 
-
-    /**
-     * Trial stuff
-     *
-     * The trial atm works with a 1 time per day timing feature use. To make it work there is 3 shared prefs values
-     * 1. The date of last time timing was used
-     * 2. Count of videos used (in one day)
-     * 3. If the trial is active (in case user closes app while using timing and reopens the app, the pref would store this and it wouldnt reset)
-     *
-     * When users picks media it triggers the check - if pref 3 isnt active then nothing, else, user quit the app while it was open,
-     * in which case pref 2 is increased 1, and pref 1 too, lastly pref 3 is reset to non active
-     */
-
-    private fun updateFreeTrialInfo() {
-        //if trial was being used update count and date in which it happened, and set the trial isActive variable to false
-        if (Utils.getIsTimingTrialActive(this)) {
-            Utils.updatePrefCountOfFreeTimingVideosInTrial(
-                this,
-                Utils.getPrefCountOfFreeTimingVideosInTrial(this)
-            )
-            Utils.updatePrefDayOfYearTrial(this, Calendar.getInstance().get(Calendar.DAY_OF_YEAR))
-            Utils.updateIsTimingTrialActive(this, false)
-        }
-    }
-
-
     /**
      * Speed slider interface
      */
     override fun setSpeed(newValue: Float) {
-        videoPlayerController.setSpeed(newValue / 100)
+        mainViewModel.setVideoSpeed(newValue)
     }
 
     /**
@@ -317,91 +308,28 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-
-    override fun startTimingFeature() {
-        if (Utils.isUserSubscribed(this) || Utils.getIsTimingTrialActive(this)) {
-            //user has already started the trial, so its in the same video as the one he started it with or has not exceeded count
-            startTiming()
-        } else {
-            if (Utils.canStartTimingTrial(this)) {
-
-                //starts the trial - put dialog saying you are starting trial
-                val dialogPositiveNegativeInterface =
-                    object : DialogsCreatorObject.DialogWindowInterface {
-                        override fun onPositiveButton() {
-                            //its ok to use application context here because its a shared prefs operation - doesnt care much about activity lifecycle
-                            Utils.updateIsTimingTrialActive(applicationContext, true)
-                            startTiming()
-                        }
-
-                        override fun onNegativeButton() {
-                            getSubscriptionDialog()
-                        }
-                    }
-
-                val alertDialog: AlertDialog =
-                    DialogsCreatorObject.getTrialStartDialog(this, dialogPositiveNegativeInterface)
-                alertDialog.show()
-
-            } else {
-
-                //expired - put dialog saying you are expired - get premium or wait one day
-                val dialogPositiveNegativeInterface =
-                    object : DialogsCreatorObject.DialogWindowInterface {
-                        override fun onPositiveButton() {
-                            getSubscriptionDialog()
-                        }
-
-                        override fun onNegativeButton() {
-                        }
-                    }
-
-                val alertDialog: AlertDialog = DialogsCreatorObject.getTrialExpiredDialog(
-                    this,
-                    dialogPositiveNegativeInterface
-                )
-                alertDialog.show()
-            }
-
-        }
-    }
-
-    fun startTiming() {
-        toggleTimingContainerVisibility(true)
-        updateLapsText(
-            Utils.floatToStartString(timeSplitsController!!.startTiming(videoPlayerController.getCurrentPosition())),
-            true
-        )
+    override fun startTiming() {
+        //checks if timing feature is available, and then also calls startTiming()
+        mainViewModel.checkIfCanStartTiming(this)
     }
 
     override fun lapTiming() {
-        if (timeSplitsController != null && timeSplitsController!!.isActive) {
-            updateLapsText(
-                Utils.pairFloatToLapString(timeSplitsController!!.doLap(videoPlayerController.getCurrentPosition())),
-                false
-            )
-        }
+        mainViewModel.lapTiming()
     }
 
     override fun stopTiming() {
-        if (timeSplitsController != null && timeSplitsController!!.isActive) {
-            updateLapsText(
-                Utils.pairFloatToLapString(timeSplitsController!!.stopTiming(videoPlayerController.getCurrentPosition())),
-                false
-            )
-        }
+        mainViewModel.stopTiming()
     }
 
     override fun clearTiming() {
-        toggleTimingContainerVisibility(false)
-        timeSplitsController?.clearTiming()
+        mainViewModel.clearTiming()
     }
 
     override fun helpButtonPressed() {
         showGuideWindow()
     }
 
-    override fun subPressed() {
+    override fun subscriptionButtonPressed() {
         getSubscriptionDialog()
     }
 
@@ -410,9 +338,8 @@ class MainActivity : AppCompatActivity(),
      */
 
     private fun intentPickMedia() {
-        if (videoPlayerController.isPlaying) {
-            videoPlayerController.stopPlaying()
-        }
+        mainViewModel.stopPlayingVideo()
+
         val intent = Intent(
             Intent.ACTION_OPEN_DOCUMENT,
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI
@@ -423,18 +350,8 @@ class MainActivity : AppCompatActivity(),
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == RESULT_OK) {
-
-            //if user has succesfully changed clip, check if the trial was active to count that video as used
-            updateFreeTrialInfo()
-            //initialise the timesplits controller to reset data from previous video
-            timeSplitsController = TimeSplitsController()
-
-            //UI
             hideStartFragment()
-            toggleTimingContainerVisibility(false)
-
-            preparePlayerForNewVideo(data!!.data!!)
-            hasMediaLoaded = true
+            mainViewModel.prepareForNewVideo(this, data!!.data!!)
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
@@ -447,61 +364,33 @@ class MainActivity : AppCompatActivity(),
      * EXOPLAYER STUFF
      */
 
-    private fun preparePlayerForNewVideo(data: Uri?) {
-        prepareVideoSource(MediaItem.fromUri(data!!))
-        configureExoPlayerButtons(data)
-        resetPlaybackSpeed()
-    }
-
     private fun setUpPlayer() {
-        exoPlayer = mainViewModel.getExoPlayerInstance(this)
-        dataSourceFactory = mainViewModel.getDataSourceFactoryInstance(this, application)
-
-        mainViewModel.configurePlayerVideoListener(exoPlayer!!, surface_view)
-        mainViewModel.configureVideoSurface(exoPlayer!!, surface_view, this)
-        mainViewModel.configurePlayerControls(exoPlayer!!, player_controls)
-
-        videoPlayerController.initialize(exoPlayer!!, dataSourceFactory,
-            object : TestInterface {
-                override fun mediaFinished() {
-                    showActionFragments(true)
-                }
-            })
+        mainViewModel.setUpPlayer(this, surface_view, player_controls)
     }
 
-    private fun resetPlaybackSpeed() {
-        //not the best way of communicating, it shouldnt be through the view but through the viewmodel
-        (supportFragmentManager.findFragmentById(id.speedSlider_frag) as SpeedSliderFragment).resetSpeed()
-    }
-
-    private fun configureExoPlayerButtons(mediaUri: Uri) {
-        videoPlayerController.configureExoPlayerButtonsActions(this, mediaUri)
-
+    private fun setPlayerControlsInterface(playerControlsInterface: MediaPlayerCustomActions) {
         custom_forward.setOnClickListener {
-            videoPlayerController.mediaPlayerCustomActions.goForward()
+            playerControlsInterface.goForward()
         }
         custom_rewind.setOnClickListener {
-            videoPlayerController.mediaPlayerCustomActions.goRewind()
+            playerControlsInterface.goRewind()
         }
         next_frame_btn.setOnClickListener {
-            videoPlayerController.mediaPlayerCustomActions.goNextFrame()
+            playerControlsInterface.goNextFrame()
         }
         previous_frame_btn.setOnClickListener {
-            videoPlayerController.mediaPlayerCustomActions.goPreviousFrame()
+            playerControlsInterface.goPreviousFrame()
         }
-    }
 
-    private fun prepareVideoSource(mediaItem: MediaItem) {
-        videoPlayerController.prepareVideoSource(mediaItem)
     }
 
     override fun onPause() {
-        videoPlayerController.stopPlaying()
+        mainViewModel.stopPlayingVideo()
         super.onPause()
     }
 
     override fun onDestroy() {
-        videoPlayerController.stopAndRelease()
+        mainViewModel.stopPlayingAndRelease()
         super.onDestroy()
     }
 
@@ -517,8 +406,7 @@ class MainActivity : AppCompatActivity(),
                 .setPositiveButton(
                     "Yes"
                 ) { _, _ ->
-                    videoPlayerController.stopPlaying()
-                    hasMediaLoaded = false
+                    mainViewModel.stopPlayingVideo()
                     toggleFragmentsVisibility(
                         true,
                         supportFragmentManager.findFragmentById(id.full_screen_container) as StartFragment
@@ -540,17 +428,6 @@ class MainActivity : AppCompatActivity(),
 
     private fun areFragmentsInBackstack(): Boolean {
         return supportFragmentManager.backStackEntryCount > 0
-    }
-
-    private fun updateLapsText(newText: String, isReset: Boolean) {
-        if (isReset) {
-            timing_display.text = newText
-            return
-        } else {
-            var timePointsDisplayText = timing_display.text.toString()
-            timePointsDisplayText += newText
-            timing_display.text = timePointsDisplayText
-        }
     }
 
     private fun hideStartFragment() {
@@ -591,14 +468,6 @@ class MainActivity : AppCompatActivity(),
         super.onBackPressed()
     }
 
-    private fun toggleTimingContainerVisibility(isVisible: Boolean) {
-        if (isVisible) {
-            info_container.visibility = View.VISIBLE
-        } else {
-            info_container.visibility = View.GONE
-        }
-    }
-
     private fun setUserGestureListener() {
         mainViewModel.setUserGestureListener(surface_view, this)
     }
@@ -617,18 +486,14 @@ class MainActivity : AppCompatActivity(),
             show,
             supportFragmentManager.findFragmentById(id.speedSlider_frag) as SpeedSliderFragment
         )
-
-        if (timeSplitsController != null && !timeSplitsController!!.isCleared) {
-            toggleInfoDisplay(info_container, show)
-        }
     }
 
-    private fun toggleInfoDisplay(view: View, show: Boolean) {
+    private fun changeVisibilityTimingContainer(show: Boolean) {
         val transition: Transition = Slide(Gravity.START)
         transition.duration = 200
-        transition.addTarget(view)
+        transition.addTarget(info_container)
         TransitionManager.beginDelayedTransition(parent_container, transition)
-        view.visibility = if (show) View.VISIBLE else View.GONE
+        info_container.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun toggleFragmentsVisibility(

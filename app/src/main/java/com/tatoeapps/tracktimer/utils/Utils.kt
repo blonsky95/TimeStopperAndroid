@@ -33,13 +33,19 @@ object Utils {
      */
     private val df = DecimalFormat("0.000")
 
-    fun floatToStartString(startTiming: Float): String {
+    fun floatToStartString(startTiming: Float =0F): String {
         return "${df.format(startTiming)} (START)"
     }
 
     fun pairFloatToLapString(pair: Pair<Float, Float>): String {
         return "\n${df.format(pair.first)} (${df.format(pair.second)})"
     }
+
+    val VISIBILITY_DO_NOTHING = 0
+    val VISIBILITY_TOGGLE = 1
+    val VISIBILITY_SHOW = 2
+    val VISIBILITY_HIDE = 3
+
 
     /**
      * Timing feature & Trial mode stuff
@@ -52,16 +58,16 @@ object Utils {
         val dayOfYear = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
         if (dayOfYear == getPrefDayOfYearTrial(context)) {
             //so the user has done at least one video if the dates are matching
-            if (getPrefCountOfFreeTimingVideosInTrial(context) >= numberVideosTimingFree) {
+            if (getCountOfFreeDailyTiming(context) >= numberVideosTimingFree) {
                 //too many videos for free trial, has expired
                 //expired
                 return false
             }
         } else {
             //its a different day from the last use, so reset count to 0, and return true later
-            updatePrefCountOfFreeTimingVideosInTrial(
+            addOneToCountOfFreeDailyTiming(
                 context,
-                getPrefCountOfFreeTimingVideosInTrial(context),
+                getCountOfFreeDailyTiming(context),
                 true
             )
         }
@@ -98,7 +104,6 @@ object Utils {
     private const val MILLIS_IN_ONE_DAY = 86400000
 
     fun shouldShowRatingPrompt(context: Context, currentSystemTimeInMillis: Long): Boolean {
-        return true
         if (hasUserReviewedApp(context)) {
             return false
         }
@@ -153,7 +158,7 @@ object Utils {
         }
     }
 
-    fun getIsTimingTrialActive(context: Context): Boolean {
+    fun getIsTimingFreeActive(context: Context): Boolean {
         val sharedPref = context.getSharedPreferences(
             context.getString(R.string.preference_is_trial_on), Context.MODE_PRIVATE
         )
@@ -164,7 +169,7 @@ object Utils {
         )
     }
 
-    fun updateIsTimingTrialActive(context: Context, isActive: Boolean) {
+    fun updateIsTimingFreeActive(context: Context, isActive: Boolean) {
         val sharedPref = context.getSharedPreferences(
             context.getString(R.string.preference_is_trial_on), Context.MODE_PRIVATE
         )
@@ -185,7 +190,7 @@ object Utils {
         )
     }
 
-    fun updatePrefDayOfYearTrial(context: Context, int: Int) {
+    fun updatePrefDayOfYearLastTiming(context: Context, int: Int) {
         val sharedPref = context.getSharedPreferences(
             context.getString(R.string.preference_day_of_year_last_trial), Context.MODE_PRIVATE
         )
@@ -195,7 +200,7 @@ object Utils {
         }
     }
 
-    fun getPrefCountOfFreeTimingVideosInTrial(context: Context): Int {
+    fun getCountOfFreeDailyTiming(context: Context): Int {
         val sharedPref = context.getSharedPreferences(
             context.getString(R.string.preference_count_video_timing_trial),
             Context.MODE_PRIVATE
@@ -207,7 +212,7 @@ object Utils {
         )
     }
 
-    fun updatePrefCountOfFreeTimingVideosInTrial(
+    fun addOneToCountOfFreeDailyTiming(
         context: Context,
         countBeforeUpdate: Int,
         resetCounter: Boolean = false

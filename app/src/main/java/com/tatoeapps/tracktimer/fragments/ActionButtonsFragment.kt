@@ -28,7 +28,7 @@ class ActionButtonsFragment : Fragment() {
             actionButtonsInterface.importVideo()
         }
         view.start_btn.setOnClickListener {
-            actionButtonsInterface.startTimingFeature()
+            actionButtonsInterface.startTiming()
         }
         view.lap_btn.setOnClickListener {
             actionButtonsInterface.lapTiming()
@@ -43,7 +43,7 @@ class ActionButtonsFragment : Fragment() {
             actionButtonsInterface.helpButtonPressed()
         }
         view.sub_btn.setOnClickListener {
-            actionButtonsInterface.subPressed()
+            actionButtonsInterface.subscriptionButtonPressed()
         }
 
     }

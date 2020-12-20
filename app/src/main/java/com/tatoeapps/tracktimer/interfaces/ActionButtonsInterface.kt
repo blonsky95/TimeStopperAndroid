@@ -5,7 +5,7 @@ interface ActionButtonsInterface {
 
     }
 
-    fun startTimingFeature() {
+    fun startTiming() {
 
     }
 
@@ -25,7 +25,7 @@ interface ActionButtonsInterface {
 
     }
 
-    fun subPressed() {
+    fun subscriptionButtonPressed() {
 
     }
 }

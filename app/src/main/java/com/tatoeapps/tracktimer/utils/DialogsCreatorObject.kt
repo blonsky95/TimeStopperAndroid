@@ -2,10 +2,8 @@ package com.tatoeapps.tracktimer.utils
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.text.SpannableString
 import android.text.method.LinkMovementMethod
-import android.text.method.MovementMethod
 import android.text.util.Linkify
 import android.view.View
 import com.android.billingclient.api.SkuDetails
@@ -111,7 +109,7 @@ object DialogsCreatorObject {
             "${context.resources.getString(R.string.trial_prompt_segment_1)} ${Utils.numberVideosTimingFree} ${context.resources.getString(
                 R.string.trial_prompt_segment_2
             )}" +
-                    " ${context.resources.getString(R.string.trial_prompt_segment_3)} ${Utils.getPrefCountOfFreeTimingVideosInTrial(
+                    " ${context.resources.getString(R.string.trial_prompt_segment_3)} ${Utils.getCountOfFreeDailyTiming(
                         context
                     )}${context.resources.getString(R.string.trial_prompt_segment_4)}"
         )
