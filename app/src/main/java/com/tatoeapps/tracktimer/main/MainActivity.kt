@@ -1,27 +1,24 @@
 package com.tatoeapps.tracktimer.main
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.transition.Slide
 import android.transition.Transition
 import android.transition.TransitionManager
-import android.view.Gravity
 import android.view.View
-import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.SkuDetails
 import com.google.android.exoplayer2.ui.DefaultTimeBar
 import com.tatoeapps.tracktimer.BuildConfig
@@ -36,7 +33,10 @@ import com.tatoeapps.tracktimer.interfaces.ActionButtonsInterface
 import com.tatoeapps.tracktimer.interfaces.GuideInterface
 import com.tatoeapps.tracktimer.interfaces.MediaPlayerCustomActions
 import com.tatoeapps.tracktimer.interfaces.SpeedSliderInterface
-import com.tatoeapps.tracktimer.utils.*
+import com.tatoeapps.tracktimer.utils.Utils
+import com.tatoeapps.tracktimer.utils.Utils.getHorizontalFragmentTransition
+import com.tatoeapps.tracktimer.utils.Utils.getNoAnimationTransition
+import com.tatoeapps.tracktimer.utils.Utils.getVerticalFragmentTransition
 import com.tatoeapps.tracktimer.viewmodel.MainViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.exo_player_control_view.*
@@ -51,8 +51,7 @@ class MainActivity : AppCompatActivity(),
 
     lateinit var mainViewModel: MainViewModel
 
-    //class that does all the billing - google pay subscriptions and related
-    private lateinit var billingClientLifecycle: BillingClientLifecycle
+    private var alertDialog: AlertDialog? = null
 
     private var hasPermissions = false
     private val PERMISSION_REQUEST_CODE = 123
@@ -64,11 +63,9 @@ class MainActivity : AppCompatActivity(),
             Timber.plant(Timber.DebugTree())
         }
 
-        //todo check this out too
-        billingClientLifecycle = BillingClientLifecycle.getInstance(application, this, lifecycle)
-        billingClientLifecycle.create(true)
-
         mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+
+        mainViewModel.startBillingClientLifecycle(application, this, lifecycle)
 
         if (Utils.isUserFirstTimer(this)) {
             startActivity(Intent(this, OnBoardingActivity::class.java))
@@ -92,17 +89,12 @@ class MainActivity : AppCompatActivity(),
                 }
             }
 
-            promptAppRatingToUser()
+            askUserIfWantToRateApp()
         }
     }
 
     override fun onResume() {
         setUpFullScreen()
-        //check if screen is black so first check if start fragment isn't visible + exoplayer is instanced (not onboarding) + exo has a media item (not on start fragment)
-//        if (hasMediaLoaded && exoPlayer?.currentMediaItem == null) {
-//            //todo see if this works to detect a bug - so far no
-//            Toast.makeText(this, "IS THERE BLACK SCREEN?", Toast.LENGTH_SHORT).show()
-//        }
         super.onResume()
     }
 
@@ -110,12 +102,12 @@ class MainActivity : AppCompatActivity(),
      * Prompting user to rate app
      */
 
-    private fun promptAppRatingToUser() {
-        mainViewModel.promptAppRatingToUser(this)
+    private fun askUserIfWantToRateApp() {
+        mainViewModel.askUserIfWantToRateApp(this)
     }
 
-    private fun showAppReviewToUser() {
-        mainViewModel.showAppReviewToUser(this)
+    private fun letUserRateApp() {
+        mainViewModel.letUserRateApp(this)
     }
 
     /**
@@ -126,25 +118,17 @@ class MainActivity : AppCompatActivity(),
         mainViewModel.prepareForNewVideo(this, data)
     }
 
-
     /**
-     * Purchase subscription
+     * Observers
      */
-
-    //dialog window which pops up while waiting for a connection to google pay, its
-    // not local because to dismiss its called from functions in other scopes
-    private var loadingAlertDialog: AlertDialog? = null
-    private var subscribedAlertDialog: android.app.AlertDialog? = null
-    private var unsubscribedAlertDialog: android.app.AlertDialog? = null
-
     private fun addObservers() {
         mainViewModel.fragmentsVisibilityAction.observe(
             this,
             androidx.lifecycle.Observer { action ->
                 when (action) {
-                    Utils.VISIBILITY_TOGGLE -> showActionFragments(!areFragmentPanelsVisible())
-                    Utils.VISIBILITY_SHOW -> showActionFragments(true)
-                    Utils.VISIBILITY_HIDE -> showActionFragments(false)
+                    Utils.VISIBILITY_TOGGLE -> changeVisibilityOfActionFragments(!areFragmentPanelsVisible())
+                    Utils.VISIBILITY_SHOW -> changeVisibilityOfActionFragments(true)
+                    Utils.VISIBILITY_HIDE -> changeVisibilityOfActionFragments(false)
                 }
             })
 
@@ -158,11 +142,29 @@ class MainActivity : AppCompatActivity(),
                 }
             })
 
-        mainViewModel.promptAppRatingToUser.observe(
+        mainViewModel.getStartFragment.observe(
             this,
-            androidx.lifecycle.Observer { promptRating ->
-                if (promptRating) {
-                    showAppReviewToUser()
+            Observer { getStartFragment ->
+                if (getStartFragment) {
+                    getStartFragment(true)
+                }
+            }
+        )
+
+        mainViewModel.getGuideFragment.observe(
+            this,
+            Observer { getGuideFragment ->
+                if (getGuideFragment) {
+                    getGuideFragment()
+                }
+            }
+        )
+
+        mainViewModel.userWantsToRate.observe(
+            this,
+            androidx.lifecycle.Observer { userWantsToRate ->
+                if (userWantsToRate) {
+                    letUserRateApp()
                 }
             })
 
@@ -182,104 +184,55 @@ class MainActivity : AppCompatActivity(),
                 }
             })
 
-        mainViewModel.showSubscriptionDialog.observe(
-            this,
-            androidx.lifecycle.Observer { showSubscriptionDialog ->
-                if (showSubscriptionDialog) {
-                    getSubscriptionDialog()
-                }
-            })
+        /**
+         *  BILLING CLIENT LIFECYCLE - related stuff
+         */
 
-        //when this value is triggered - if true, it displays the loading (connecting to google pay) dialog, if false, it dismisses it
-        //this dialog window is not cancelable, but has a CANCEL button, which will kill the google pay connection and remove the loading screen
-        mainViewModel.isConnectingToGooglePlay.observe(
-            this,
-            androidx.lifecycle.Observer<Boolean> { isConnecting ->
-                if (!isConnecting) {
-                    loadingAlertDialog?.dismiss()
-                } else {
-                    val dialogWindowInterface =
-                        object : DialogsCreatorObject.DialogWindowInterface {
-                            override fun onCancelButton() {
-                                billingClientLifecycle.destroy()
-                                mainViewModel.isConnectingToGooglePlay.postValue(false)
-                            }
-                        }
-
-                    loadingAlertDialog =
-                        DialogsCreatorObject.getLoadingDialog(this, dialogWindowInterface)
-                    loadingAlertDialog!!.show()
-                }
-
+        //triggered when an alert dialog is to be displayed, only ONE can be displayed at any time:
+        // 1 - dialog with loading animation - connecting to google play
+        // 2 - dialog that shows subscription plan + subscribe button
+        // 3 - dialog that says "you are already subscribed"
+        // 4 - dialog that says "there is an error connecting"
+        mainViewModel.alertDialog.observe(this, Observer { alertDialog ->
+            //clear existent dialogs
+            this.alertDialog?.dismiss()
+            if (alertDialog != null) {
+                this.alertDialog = alertDialog
+                this.alertDialog?.show()
             }
-        )
+        })
 
-        //when this value is triggered - a subscription query has been made and results are brought back
-        billingClientLifecycle.skusWithSkuDetails.observe(
+        /**
+         * the following live data is not in VIEW MODEL but in BILLING CLIENT LIFECYCLE class
+         */
+
+        //dialog 1 appears when BCL is working on the background
+
+        //BCL is saying the subscription info is ready to be presented - dialog 2
+        mainViewModel.billingClientLifecycle.availableSubscriptions.observe(
             this,
             androidx.lifecycle.Observer<Map<String, SkuDetails>> { list: Map<String, SkuDetails> ->
-                //first, gets rid of the loading dialog window
-                mainViewModel.isConnectingToGooglePlay.postValue(false)
-                val skuDetails = list[BillingClientLifecycle.subscriptionSku]
-
-                val dialogWindowInterface =
-                    object : DialogsCreatorObject.DialogWindowInterface {
-                        override fun onSubscribeClicked() {
-                            if (skuDetails != null) {
-                                val flowParams =
-                                    BillingFlowParams.newBuilder().setSkuDetails(skuDetails).build()
-                                billingClientLifecycle.startLaunchBillingFlow(flowParams)
-                            }
-                        }
-                    }
-
-                unsubscribedAlertDialog =
-                    DialogsCreatorObject.getUnsubscribedDialog(this, list, dialogWindowInterface)
-                unsubscribedAlertDialog!!.show()
-                subscribedAlertDialog?.dismiss()
+                mainViewModel.showAvailableSubscriptions(list, this)
             })
 
-        billingClientLifecycle.subscriptionActive.observe(
+        //BCL is saying the user just or is already subscribed - dialog 3
+        mainViewModel.billingClientLifecycle.subscriptionActive.observe(
             this,
             androidx.lifecycle.Observer<Boolean> { subscriptionActive ->
-
-                //BUG FIX - avoid on resume resets from using the singleton
-                //if variable is false, user has prompted dialog, else, just a background check so dont interact with UI
-                if (!billingClientLifecycle.mCheckingSubscriptionState) {
-                    mainViewModel.isConnectingToGooglePlay.postValue(false)
-
-                    //subscription active is always true as of 03/11/2020
-                    subscribedAlertDialog =
-                        DialogsCreatorObject.getSubscribedDialog(this)
-                    subscribedAlertDialog!!.show()
-                    unsubscribedAlertDialog?.dismiss()
+                if (subscriptionActive) {
+                    mainViewModel.showSubscribedDialog(this)
                 }
-
             })
 
-        billingClientLifecycle.billingClientConnectionState.observe(
+        //BCL is saying there has been an error connecting or elsewhere - dialog 4
+        mainViewModel.billingClientLifecycle.billingClientConnectionState.observe(
             this,
             androidx.lifecycle.Observer<Int> { _ ->
-                if (loadingAlertDialog != null && loadingAlertDialog!!.isShowing) {
-                    loadingAlertDialog!!.findViewById<TextView>(id.loading_dialog_text)?.text =
-                        getString(
-                            R.string.internet_problem_text
-                        )
-                    loadingAlertDialog!!.findViewById<ProgressBar>(id.indeterminateBar)?.visibility =
-                        View.GONE
-                }
+                mainViewModel.showErrorAlertDialog(this)
             }
         )
 
 
-    }
-
-
-    private fun getSubscriptionDialog() {
-        //trigger the loading window as
-        mainViewModel.isConnectingToGooglePlay.postValue(true)
-        //it starts the query for purchases, which when retrieved will hide the window and show the available products
-        billingClientLifecycle.create()
     }
 
     /**
@@ -326,11 +279,12 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun helpButtonPressed() {
-        showGuideWindow()
+        mainViewModel.getGuideFragment()
     }
 
     override fun subscriptionButtonPressed() {
-        getSubscriptionDialog()
+        //this starts the code to get the subscription dialogs
+        mainViewModel.checkForSubscriptions(this)
     }
 
     /**
@@ -354,10 +308,6 @@ class MainActivity : AppCompatActivity(),
             mainViewModel.prepareForNewVideo(this, data!!.data!!)
         }
         super.onActivityResult(requestCode, resultCode, data)
-    }
-
-    private fun showGuideWindow() {
-        getGuideFragment()
     }
 
     /**
@@ -384,6 +334,10 @@ class MainActivity : AppCompatActivity(),
 
     }
 
+    /**
+     * ACTIVITY LIFECYCLE STUFF
+     */
+
     override fun onPause() {
         mainViewModel.stopPlayingVideo()
         super.onPause()
@@ -398,23 +352,15 @@ class MainActivity : AppCompatActivity(),
         if (intent?.action == Intent.ACTION_VIEW || areFragmentsInBackstack() || supportFragmentManager.findFragmentById(
                 id.full_screen_container
             )!!.isVisible
-        ) {
+        )
+        //if app was open through an intent, or there is fragment on backstack, or startfragment (full screen container) then do normal back
+        {
             super.onBackPressed()
-        } else {
-            val dialogBuilder = AlertDialog.Builder(this)
-                .setMessage(this.resources.getString(R.string.dialog_quit))
-                .setPositiveButton(
-                    "Yes"
-                ) { _, _ ->
-                    mainViewModel.stopPlayingVideo()
-                    toggleFragmentsVisibility(
-                        true,
-                        supportFragmentManager.findFragmentById(id.full_screen_container) as StartFragment
-                    )
-                }
-                .setNegativeButton("No", null)
-                .setCancelable(true)
-            dialogBuilder.show()
+        } else
+        //trigger confirm dialog for user to quit a video
+        {
+            mainViewModel.getConfirmQuitVideoDialog(this)
+
         }
     }
 
@@ -422,13 +368,17 @@ class MainActivity : AppCompatActivity(),
      * EVERYTHING UNDER HERE IS RELATED TO APP **UI** (OR SHOULD BE)
      */
 
+    //user tapping screen toggles the visibility of the button panels, so function used to know visibility state
     private fun areFragmentPanelsVisible(): Boolean {
-        return (supportFragmentManager.findFragmentById(R.id.actionBtns_frag) as ActionButtonsFragment).isVisible
+        return (supportFragmentManager.findFragmentById(id.actionBtns_frag) as ActionButtonsFragment).isVisible
     }
 
+    //When fragments are in backstack, back button works normally, else triggers dialog to confirm quit
     private fun areFragmentsInBackstack(): Boolean {
         return supportFragmentManager.backStackEntryCount > 0
     }
+
+    //next are all fragment hiding and showing logic - do paper scheme first - then code for it
 
     private fun hideStartFragment() {
         if (intent?.action != Intent.ACTION_VIEW) {
@@ -438,25 +388,26 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    private fun getStartFragment() {
-        supportFragmentManager.beginTransaction()
-            .add(
-                id.full_screen_container,
-                StartFragment()
-            ).commit()
+    private fun getStartFragment(addAnimation: Boolean = false) {
+        val fragmentTransaction =
+            if (addAnimation) {
+                getVerticalFragmentTransition(supportFragmentManager)
+            } else {
+                getNoAnimationTransition(supportFragmentManager)
+            }
+
+        fragmentTransaction.add(
+            id.full_screen_container,
+            StartFragment()
+        ).commit()
     }
 
+
     private fun getGuideFragment() {
-        val fragTransaction = supportFragmentManager.beginTransaction()
+        val fragmentTransaction = getHorizontalFragmentTransition(supportFragmentManager)
 
-        fragTransaction.setCustomAnimations(
-            R.anim.slide_right_to_left,
-            R.anim.slide_left_to_right,
-            R.anim.slide_right_to_left,
-            R.anim.slide_left_to_right
-        )
-
-        fragTransaction.add(
+        //this transaction adds to backstack because pressing back makes the entry animation inverse to exit
+        fragmentTransaction.add(
             id.full_screen_container,
             GuideFragment()
         ).addToBackStack("guide_frag").commit()
@@ -468,66 +419,45 @@ class MainActivity : AppCompatActivity(),
         super.onBackPressed()
     }
 
-    private fun setUserGestureListener() {
-        mainViewModel.setUserGestureListener(surface_view, this)
-    }
-
-    private fun showActionFragments(show: Boolean) {
+    private fun changeVisibilityOfActionFragments(show: Boolean) {
         if (show) {
             player_controls.show()
         } else {
             player_controls.hide()
         }
-        toggleFragmentsVisibility(
-            show,
-            supportFragmentManager.findFragmentById(id.actionBtns_frag) as ActionButtonsFragment
+
+        val verticalFragTransition = getVerticalFragmentTransition(supportFragmentManager)
+        val horizontalFragTransition = getHorizontalFragmentTransition(supportFragmentManager)
+
+        performFragmentVisibilityAction(
+            supportFragmentManager.findFragmentById(id.actionBtns_frag) as ActionButtonsFragment,
+            horizontalFragTransition,
+            show
         )
-        toggleFragmentsVisibility(
-            show,
-            supportFragmentManager.findFragmentById(id.speedSlider_frag) as SpeedSliderFragment
+        performFragmentVisibilityAction(
+            supportFragmentManager.findFragmentById(id.speedSlider_frag) as SpeedSliderFragment,
+            verticalFragTransition,
+            show
         )
     }
+
+    private fun performFragmentVisibilityAction(
+        fragment: Fragment,
+        fragmentTransaction: FragmentTransaction,
+        show: Boolean
+    ) {
+        if (show) {
+            fragmentTransaction.show(fragment).commit()
+        } else {
+            fragmentTransaction.hide(fragment).commit()
+        }
+    }
+
 
     private fun changeVisibilityTimingContainer(show: Boolean) {
-        val transition: Transition = Slide(Gravity.START)
-        transition.duration = 200
-        transition.addTarget(info_container)
+        val transition: Transition = Utils.getSlideTransition(info_container)
         TransitionManager.beginDelayedTransition(parent_container, transition)
         info_container.visibility = if (show) View.VISIBLE else View.GONE
-    }
-
-    private fun toggleFragmentsVisibility(
-        show: Boolean,
-        fragment: Fragment,
-        addToBackstack: Boolean = false
-    ) {
-
-        val fragTransaction = supportFragmentManager.beginTransaction()
-        if (fragment is ActionButtonsFragment) {
-            fragTransaction.setCustomAnimations(
-                R.anim.slide_right_to_left,
-                R.anim.slide_left_to_right,
-                R.anim.slide_right_to_left,
-                R.anim.slide_left_to_right
-            )
-        } else {
-            fragTransaction.setCustomAnimations(
-                R.anim.slide_down_to_up,
-                R.anim.slide_up_to_down,
-                R.anim.slide_down_to_up,
-                R.anim.slide_up_to_down
-            )
-        }
-
-        if (show) {
-            if (addToBackstack) {
-                fragTransaction.show(fragment).addToBackStack("guide_frag").commit()
-            } else {
-                fragTransaction.show(fragment).commit()
-            }
-        } else {
-            fragTransaction.hide(fragment).commit()
-        }
     }
 
     private fun hideBuffering() {
@@ -542,6 +472,10 @@ class MainActivity : AppCompatActivity(),
 
     private fun setUpSystemUiVisibilityListener() {
         mainViewModel.setUpSystemUIVisibilityListener(window.decorView)
+    }
+
+    private fun setUserGestureListener() {
+        mainViewModel.setUserGestureListener(surface_view, this)
     }
 
     /**

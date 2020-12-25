@@ -62,11 +62,11 @@ class BillingClientLifecycle(
     }
 
     private lateinit var billingClient: BillingClient
-    val skusWithSkuDetails = MutableLiveData<Map<String, SkuDetails>>()
+    val availableSubscriptions = MutableLiveData<Map<String, SkuDetails>>()
     val subscriptionActive = MutableLiveData<Boolean>()
     val billingClientConnectionState = MutableLiveData<Int>()
 
-    var mCheckingSubscriptionState = true
+    var userInterfaceRequireUpdating = false
 
     override fun onPurchasesUpdated(
         billingResult: BillingResult,
@@ -74,7 +74,7 @@ class BillingClientLifecycle(
     ) {
         if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
             for (purchase in purchases) {
-                handlePurchase(purchase)
+                handleSubscription(purchase)
             }
         } else if (billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
 //            Toast.makeText(mainActivity, "User canceled buy", Toast.LENGTH_SHORT).show()
@@ -85,7 +85,7 @@ class BillingClientLifecycle(
         }
     }
 
-    private fun handlePurchase(purchase: Purchase) {
+    private fun handleSubscription(purchase: Purchase) {
         @Suppress("DEPRECATED_IDENTITY_EQUALS")
         //verifies the purchase
         if (purchase.purchaseState === Purchase.PurchaseState.PURCHASED) {
@@ -101,7 +101,7 @@ class BillingClientLifecycle(
                     Timber.d("acknowledgePurchase: $responseCode $debugMessage")
                 }
             }
-            if (!mCheckingSubscriptionState){
+            if (userInterfaceRequireUpdating){
                 subscriptionActive.postValue(true)
             }
         }
@@ -134,9 +134,9 @@ class BillingClientLifecycle(
                 Timber.d("onSkuDetailsResponse: $responseCode $debugMessage")
                 if (skuDetailsList == null) {
                     Timber.d("onSkuDetailsResponse: null SkuDetails list")
-                    skusWithSkuDetails.postValue(emptyMap())
+                    availableSubscriptions.postValue(emptyMap())
                 } else
-                    skusWithSkuDetails.postValue(HashMap<String, SkuDetails>().apply {
+                    availableSubscriptions.postValue(HashMap<String, SkuDetails>().apply {
                         for (details in skuDetailsList) {
                             Timber.d("onSkuDetailsResponse: details ${details.description}")
                             put(details.sku, details)
@@ -166,8 +166,8 @@ class BillingClientLifecycle(
     }
 
     //    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
-    fun create(checkingSubscriptionState: Boolean = false) {
-        mCheckingSubscriptionState=checkingSubscriptionState
+    fun buildNewClient(doesUserInterfaceNeedUpdating: Boolean) {
+        userInterfaceRequireUpdating=doesUserInterfaceNeedUpdating
         billingClient = BillingClient.newBuilder(app.applicationContext)
             .setListener(this)
             .enablePendingPurchases()
@@ -188,7 +188,7 @@ class BillingClientLifecycle(
         }
     }
 
-    fun querySkuDetails() {
+    private fun querySkuDetails() {
         Timber.d("querySkuDetails")
         val params = SkuDetailsParams.newBuilder()
             .setType(BillingClient.SkuType.SUBS)
@@ -205,24 +205,27 @@ class BillingClientLifecycle(
     }
 
     fun startLaunchBillingFlow(flowParams: BillingFlowParams): Any {
-        val responseCode = billingClient.launchBillingFlow(mainActivity, flowParams).responseCode
-        return responseCode
+        return billingClient.launchBillingFlow(mainActivity, flowParams).responseCode
     }
 
-    fun queryExistingPurchases() {
+    private fun queryExistingPurchases() {
         if (!billingClient.isReady) {
             Timber.d("queryPurchases: BillingClient is not ready")
         }
         Timber.d("queryPurchases: SUBS")
         val result = billingClient.queryPurchases(BillingClient.SkuType.SUBS)
         if (result.purchasesList != null && result.purchasesList!!.isNotEmpty()) {
-            for (purchase in result.purchasesList!!) {
-                handlePurchase(purchase)
+            //user has a subscription! - update pref so app has subscription active pref
+            for (subscription in result.purchasesList!!) {
+                handleSubscription(subscription)
             }
         } else {
-            if (mCheckingSubscriptionState) {
+            //user doesnt have a subscription
+            if (!userInterfaceRequireUpdating) {
+                //This would be run at the start, and no windows need to appear, it just updates the state of the sub pref
                 Utils.updateIsUserSubscribed(mainActivity,false)
             } else {
+                //In this case, user wants to see the subscriptions
                 querySkuDetails()
             }
 

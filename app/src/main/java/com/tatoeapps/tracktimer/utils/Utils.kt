@@ -6,6 +6,12 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
 import android.os.Handler
+import android.transition.Slide
+import android.transition.Transition
+import android.view.Gravity
+import android.widget.LinearLayout
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Renderer
@@ -19,6 +25,7 @@ import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import com.tatoeapps.tracktimer.R
+import kotlinx.android.synthetic.main.activity_main.*
 import timber.log.Timber
 import java.text.DecimalFormat
 import java.util.*
@@ -33,7 +40,7 @@ object Utils {
      */
     private val df = DecimalFormat("0.000")
 
-    fun floatToStartString(startTiming: Float =0F): String {
+    fun floatToStartString(startTiming: Float = 0F): String {
         return "${df.format(startTiming)} (START)"
     }
 
@@ -113,7 +120,7 @@ object Utils {
         )
         val lastPromptTimeInMillis =
             sharedPref.getLong(context.getString(R.string.preference_date_rating_prompt), -1L)
-        return if (lastPromptTimeInMillis>0 && currentSystemTimeInMillis >= lastPromptTimeInMillis + (daysBetweenPrompt* MILLIS_IN_ONE_DAY)) {
+        return if (lastPromptTimeInMillis > 0 && currentSystemTimeInMillis >= lastPromptTimeInMillis + (daysBetweenPrompt * MILLIS_IN_ONE_DAY)) {
             //14 or more days have passed since update or first install
             updateTimeOfLastPrompt(context, currentSystemTimeInMillis)
             true
@@ -336,11 +343,33 @@ object Utils {
         return currentExoPlayerPosition - frameJumpInMs
     }
 
-    fun getVideoInfo(videoFrameRate: Float): String {
-        var string = "FPS: $videoFrameRate\n"
-        val error = df.format((1 / videoFrameRate) / 2)
-        string += "Error\n{-$error,+$error}"
-        return string
+    fun getNoAnimationTransition(supportFragmentManager: FragmentManager):FragmentTransaction {
+        return supportFragmentManager.beginTransaction()
+    }
+
+    fun getVerticalFragmentTransition(supportFragmentManager: FragmentManager): FragmentTransaction {
+        return supportFragmentManager.beginTransaction().setCustomAnimations(
+            R.anim.slide_down_to_up,
+            R.anim.slide_up_to_down,
+            R.anim.slide_down_to_up,
+            R.anim.slide_up_to_down
+        )
+    }
+
+    fun getHorizontalFragmentTransition(supportFragmentManager: FragmentManager): FragmentTransaction {
+        return supportFragmentManager.beginTransaction().setCustomAnimations(
+            R.anim.slide_right_to_left,
+            R.anim.slide_left_to_right,
+            R.anim.slide_right_to_left,
+            R.anim.slide_left_to_right
+        )
+    }
+
+    fun getSlideTransition(infoContainer: LinearLayout): Transition {
+        val transition = Slide(Gravity.START)
+        transition.duration = 200
+        transition.addTarget(infoContainer)
+        return transition
     }
 
 

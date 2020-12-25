@@ -1,16 +1,19 @@
 package com.tatoeapps.tracktimer.viewmodel
 
+import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
 import android.net.Uri
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
+import com.android.billingclient.api.BillingFlowParams
+import com.android.billingclient.api.SkuDetails
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SeekParameters
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -23,10 +26,7 @@ import com.tatoeapps.tracktimer.R
 import com.tatoeapps.tracktimer.interfaces.MediaPlayerCustomActions
 import com.tatoeapps.tracktimer.interfaces.TestInterface
 import com.tatoeapps.tracktimer.main.MainActivity
-import com.tatoeapps.tracktimer.utils.DialogsCreatorObject
-import com.tatoeapps.tracktimer.utils.TimeSplitsController
-import com.tatoeapps.tracktimer.utils.Utils
-import com.tatoeapps.tracktimer.utils.VideoPlayerController
+import com.tatoeapps.tracktimer.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -56,18 +56,58 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelJob.cancel()
     }
 
-
-    val isConnectingToGooglePlay = MutableLiveData<Boolean>(false)
+    //UI visibility related livedata
     val fragmentsVisibilityAction = MutableLiveData(Utils.VISIBILITY_DO_NOTHING)
     val timingVisibilityAction = MutableLiveData(Utils.VISIBILITY_DO_NOTHING)
-    val timingDisplayText = MutableLiveData<String>("")
-    val promptAppRatingToUser = MutableLiveData<Boolean>(false)
-    val customPlayerControlActions = MutableLiveData<MediaPlayerCustomActions?>(null)
-    val speedReset = MutableLiveData<Boolean>(false)
-    val showSubscriptionDialog = MutableLiveData<Boolean>(false)
+    val getStartFragment = MutableLiveData<Boolean>(false)
+    val getGuideFragment = MutableLiveData<Boolean>(false)
 
-    private var videoPlayerController = VideoPlayerController()
-    private var timeSplitsController: TimeSplitsController? = null
+    //text to be displayed in timing window
+    val timingDisplayText = MutableLiveData<String>("")
+
+    //live data to make rating dialog appear
+    val userWantsToRate = MutableLiveData<Boolean>(false)
+
+    //Livedata to configure player to play each video
+    //Set player control buttons actions
+    val customPlayerControlActions = MutableLiveData<MediaPlayerCustomActions?>(null)
+    //set video playback speed to 1.0
+    val speedReset = MutableLiveData<Boolean>(false)
+
+    private var videoPlayerController = VideoPlayerController() //controls video player
+    private var timeSplitsController: TimeSplitsController? = null //controls timing
+
+    lateinit var billingClientLifecycle: BillingClientLifecycle //controls billing
+
+    //triggers any alert dialogs: subscription status, errors, quit confirmation...
+    val alertDialog = MutableLiveData<AlertDialog?>(null)
+
+    /**
+     * UI Stuff
+     */
+
+    fun getGuideFragment() {
+        getGuideFragment.postValue(true)
+    }
+
+    //unrelated to subscription
+    fun getConfirmQuitVideoDialog(mainActivity: MainActivity) {
+        val dialogWindowInterface =
+            object : DialogsCreatorObject.DialogWindowInterface {
+                override fun onPositiveButton() {
+                    stopPlayingVideo()
+                    getStartFragment.postValue(true)
+                    super.onPositiveButton()
+                }
+            }
+
+        alertDialog.postValue(
+            DialogsCreatorObject.getConfirmQuitDialog(
+                mainActivity,
+                dialogWindowInterface
+            )
+        )
+    }
 
     /**
     Register a listener in case there is a system UI visibility change like a notification or user tapping the support/action bar
@@ -104,7 +144,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
     Configure exoplayer - video listener
      */
-
 
     private fun getExoPlayerInstance(context: Context): SimpleExoPlayer? {
         val exoPlayer = Utils.getExoPlayerInstance(context)
@@ -187,12 +226,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * PROMPT USER APP RATING
      */
-    fun promptAppRatingToUser(mainActivity: MainActivity) {
+    fun askUserIfWantToRateApp(mainActivity: MainActivity) {
         if (Utils.shouldShowRatingPrompt(mainActivity, System.currentTimeMillis())) {
             val dialogWindowInterface =
                 object : DialogsCreatorObject.DialogWindowInterface {
                     override fun onPositiveButton() {
-                        promptAppRatingToUser.postValue(true)
+                        userWantsToRate.postValue(true)
                         super.onPositiveButton()
                     }
                 }
@@ -204,7 +243,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun showAppReviewToUser(mainActivity: MainActivity) {
+    fun letUserRateApp(mainActivity: MainActivity) {
         val manager = ReviewManagerFactory.create(mainActivity)
         val request = manager.requestReviewFlow()
         request.addOnCompleteListener { reviewRequest ->
@@ -323,38 +362,43 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun checkIfCanStartTiming(context: Context) {
-        if (Utils.isUserSubscribed(context) || Utils.getIsTimingFreeActive(context)) {
+    fun checkIfCanStartTiming(mainActivity: MainActivity) {
+        if (Utils.isUserSubscribed(mainActivity) || Utils.getIsTimingFreeActive(mainActivity)) {
             //user has already started the trial, so its in the same video as the one he started it with or has not exceeded count
             startTiming()
         } else {
-            if (Utils.canStartTimingTrial(context)) {
+            if (Utils.canStartTimingTrial(mainActivity)) {
 
                 //starts the trial - put dialog saying you are starting trial
                 val dialogPositiveNegativeInterface =
                     object : DialogsCreatorObject.DialogWindowInterface {
                         override fun onPositiveButton() {
-                            //its ok to use application context here because its a shared prefs operation - doesnt care much about activity lifecycle
-                            Utils.updateIsTimingFreeActive(context, true)
+                            //this is the OK button
+                            Utils.updateIsTimingFreeActive(mainActivity, true)
                             startTiming()
                         }
 
                         override fun onNegativeButton() {
-                            showSubscriptionDialog.postValue(true)
+                            //this is the GO UNLIMITED button
+                            checkForSubscriptions(mainActivity)
                         }
                     }
 
                 val alertDialog: AlertDialog =
-                    DialogsCreatorObject.getTrialStartDialog(context, dialogPositiveNegativeInterface)
+                    DialogsCreatorObject.getTrialStartDialog(
+                        mainActivity,
+                        dialogPositiveNegativeInterface
+                    )
                 alertDialog.show()
 
             } else {
 
-                //expired - put dialog saying you are expired - get premium or wait one day
+                //expired - put dialog saying you are expired - get sub or wait one day
                 val dialogPositiveNegativeInterface =
                     object : DialogsCreatorObject.DialogWindowInterface {
                         override fun onPositiveButton() {
-                            showSubscriptionDialog.postValue(true)
+                            //this is the YES! button
+                            checkForSubscriptions(mainActivity)
                         }
 
                         override fun onNegativeButton() {
@@ -362,7 +406,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
 
                 val alertDialog: AlertDialog = DialogsCreatorObject.getTrialExpiredDialog(
-                    context,
+                    mainActivity,
                     dialogPositiveNegativeInterface
                 )
                 alertDialog.show()
@@ -371,5 +415,90 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * BILLING CLIENT
+     */
+
+    //you start the BCL to get an instance, so if its already created you get that.
+    fun startBillingClientLifecycle(
+        application: Application,
+        mainActivity: MainActivity,
+        lifecycle: Lifecycle
+    ) {
+        billingClientLifecycle =
+            BillingClientLifecycle.getInstance(application, mainActivity, lifecycle)
+        checkForSubscriptions(mainActivity, false)
+    }
+
+    //this function is called:
+    // when activity created - to check if there is a subscription - no livedata (and thus UI) is updated so parameter is FALSE
+    // when user clicks subscription crown button - livedata is updated - UI is update - parameter is TRUE
+    fun checkForSubscriptions(
+        mainActivity: MainActivity,
+        doesUserInterfaceNeedUpdating: Boolean = true
+    ) {
+        if (doesUserInterfaceNeedUpdating) {
+            getConnectingLoadingAlertDialog(mainActivity)
+        }
+        billingClientLifecycle.buildNewClient(doesUserInterfaceNeedUpdating)
+    }
+
+    fun destroyBillingClientLifecycle() {
+        billingClientLifecycle.destroy()
+    }
+
+    fun showAvailableSubscriptions(list: Map<String, SkuDetails>, mainActivity: MainActivity) {
+        val skuDetails = list[BillingClientLifecycle.subscriptionSku]
+
+        val dialogWindowInterface =
+            object : DialogsCreatorObject.DialogWindowInterface {
+                override fun onSubscribeClicked() {
+                    if (skuDetails != null) {
+                        val flowParams =
+                            BillingFlowParams.newBuilder().setSkuDetails(skuDetails).build()
+                        billingClientLifecycle.startLaunchBillingFlow(flowParams)
+                    }
+                }
+            }
+        if (billingClientLifecycle.userInterfaceRequireUpdating) {
+            alertDialog.postValue(
+                DialogsCreatorObject.getUnsubscribedDialog(
+                    mainActivity,
+                    list,
+                    dialogWindowInterface
+                )
+            )
+        }
+    }
+
+    fun showSubscribedDialog(mainActivity: MainActivity) {
+        if (billingClientLifecycle.userInterfaceRequireUpdating) {
+            alertDialog.postValue(
+                DialogsCreatorObject.getSubscribedDialog(
+                    mainActivity
+                )
+            )
+        }
+    }
+
+    private fun getConnectingLoadingAlertDialog(mainActivity: MainActivity) {
+        val dialogWindowInterface =
+            object : DialogsCreatorObject.DialogWindowInterface {
+                override fun onCancelButton() {
+                    destroyBillingClientLifecycle()
+                }
+            }
+
+        alertDialog.postValue(
+            DialogsCreatorObject.getLoadingDialog(
+                mainActivity,
+                dialogWindowInterface
+            )
+        )
+    }
+
+    fun showErrorAlertDialog(mainActivity: MainActivity) {
+        alertDialog.postValue(DialogsCreatorObject.getErrorDialog(mainActivity))
+    }
 
 }
