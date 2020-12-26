@@ -1,116 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/parent_container"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".main.MainActivity">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <FrameLayout
+    <data>
+        <variable
+            name="mainViewModel"
+            type="com.tatoeapps.tracktimer.viewmodel.MainViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/parent_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#00000000">
+        tools:context=".main.MainActivity">
 
-        <com.otaliastudios.zoom.ZoomSurfaceView
-            android:id="@+id/surface_view"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:horizontalPanEnabled="true"
-            app:verticalPanEnabled="true"
-            app:zoomEnabled="true" />
+            android:background="#00000000">
 
-        <com.google.android.exoplayer2.ui.PlayerControlView
-            android:id="@+id/player_controls"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            app:controller_layout_id="@layout/exo_player_control_view"
-            app:show_buffering="always"
-            app:show_timeout="0"
-            app:time_bar_min_update_interval="5" />
+            <com.otaliastudios.zoom.ZoomSurfaceView
+                android:id="@+id/surface_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:horizontalPanEnabled="true"
+                app:verticalPanEnabled="true"
+                app:zoomEnabled="true" />
 
-    </FrameLayout>
+            <com.google.android.exoplayer2.ui.PlayerControlView
+                android:id="@+id/player_controls"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                app:controller_layout_id="@layout/exo_player_control_view"
+                app:show_buffering="always"
+                app:show_timeout="0"
+                app:time_bar_min_update_interval="5" />
 
-    <fragment
-        android:id="@+id/speedSlider_frag"
-        android:name="com.tatoeapps.tracktimer.fragments.SpeedSliderFragment"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        </FrameLayout>
 
-    <fragment
-        android:id="@+id/actionBtns_frag"
-        android:name="com.tatoeapps.tracktimer.fragments.ActionButtonsFragment"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.32999998" />
-
-    <LinearLayout
-        android:id="@+id/info_container"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:orientation="vertical"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:id="@+id/timing_display"
+        <fragment
+            android:id="@+id/speedSlider_frag"
+            android:name="com.tatoeapps.tracktimer.fragments.SpeedSliderFragment"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/rounded_background"
-            android:padding="4dp"
-            android:text=""
-            android:textColor="#FFFFFF" />
-    </LinearLayout>
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-<!--    <fragment-->
-<!--        android:id="@+id/guide_frag"-->
-<!--        android:name="com.tatoeapps.tracktimer.fragments.GuideFragment"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"-->
-<!--        android:visibility="gone"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent" />-->
+        <fragment
+            android:id="@+id/actionBtns_frag"
+            android:name="com.tatoeapps.tracktimer.fragments.ActionButtonsFragment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.32999998" />
 
-    <FrameLayout
-        android:id="@+id/full_screen_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-    </FrameLayout>
+        <LinearLayout
+            android:id="@+id/info_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-    <!--this view here is used to allow user to pull down
-    the system bar without triggering timestopper screen tap events
-    - if you click this nothing happens-->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="32dp"
-        android:clickable="true"
-        android:elevation="2dp"
-        android:focusable="false"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+            <TextView
+                android:id="@+id/timing_display"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/rounded_background"
+                android:padding="4dp"
+                android:text="@{mainViewModel.timingDisplayText}"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+
+        <!--    <fragment-->
+        <!--        android:id="@+id/guide_frag"-->
+        <!--        android:name="com.tatoeapps.tracktimer.fragments.GuideFragment"-->
+        <!--        android:layout_width="match_parent"-->
+        <!--        android:layout_height="match_parent"-->
+        <!--        android:visibility="gone"-->
+        <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+        <!--        app:layout_constraintEnd_toEndOf="parent"-->
+        <!--        app:layout_constraintStart_toStartOf="parent"-->
+        <!--        app:layout_constraintTop_toTopOf="parent" />-->
+
+        <FrameLayout
+            android:id="@+id/full_screen_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"></FrameLayout>
+
+        <!--this view here is used to allow user to pull down
+        the system bar without triggering timestopper screen tap events
+        - if you click this nothing happens-->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:clickable="true"
+            android:elevation="2dp"
+            android:focusable="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

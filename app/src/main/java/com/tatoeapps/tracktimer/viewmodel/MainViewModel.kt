@@ -63,7 +63,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val getGuideFragment = MutableLiveData<Boolean>(false)
 
     //text to be displayed in timing window
-    val timingDisplayText = MutableLiveData<String>("")
+    val timingDisplayText = MutableLiveData<String>("Im blind")
 
     //live data to make rating dialog appear
     val userWantsToRate = MutableLiveData<Boolean>(false)

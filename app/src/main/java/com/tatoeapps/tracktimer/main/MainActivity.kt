@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.LifecycleOwner
@@ -25,6 +26,7 @@ import com.tatoeapps.tracktimer.BuildConfig
 import com.tatoeapps.tracktimer.R
 import com.tatoeapps.tracktimer.R.id
 import com.tatoeapps.tracktimer.R.layout
+import com.tatoeapps.tracktimer.databinding.ActivityMainBinding
 import com.tatoeapps.tracktimer.fragments.ActionButtonsFragment
 import com.tatoeapps.tracktimer.fragments.GuideFragment
 import com.tatoeapps.tracktimer.fragments.SpeedSliderFragment
@@ -70,7 +72,11 @@ class MainActivity : AppCompatActivity(),
         if (Utils.isUserFirstTimer(this)) {
             startActivity(Intent(this, OnBoardingActivity::class.java))
         } else {
-            setContentView(layout.activity_main)
+
+            val binding: com.tatoeapps.tracktimer.databinding.ActivityMainBinding =
+                DataBindingUtil.setContentView(this, layout.activity_main)
+            binding.mainViewModel = mainViewModel
+            binding.lifecycleOwner = this
 
             checkPermissions()
             setUpSystemUiVisibilityListener()
@@ -165,14 +171,6 @@ class MainActivity : AppCompatActivity(),
             androidx.lifecycle.Observer { userWantsToRate ->
                 if (userWantsToRate) {
                     letUserRateApp()
-                }
-            })
-
-        mainViewModel.timingDisplayText.observe(
-            this,
-            androidx.lifecycle.Observer { newTimingDisplayText ->
-                if (newTimingDisplayText.isNotEmpty()) {
-                    timing_display.text = newTimingDisplayText
                 }
             })
 
