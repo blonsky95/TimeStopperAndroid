@@ -82,7 +82,6 @@ class MainActivity : AppCompatActivity(),
             setUpSystemUiVisibilityListener()
 
             setUpPlayer()
-            hideBuffering()
 
             setUserGestureListener()
             addObservers()
@@ -314,6 +313,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun setUpPlayer() {
         mainViewModel.setUpPlayer(this, surface_view, player_controls)
+        hideBuffering()
     }
 
     private fun setPlayerControlsInterface(playerControlsInterface: MediaPlayerCustomActions) {
