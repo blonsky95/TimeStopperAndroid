@@ -6,10 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.slider.Slider
 import com.tatoeapps.tracktimer.R
+import com.tatoeapps.tracktimer.databinding.FragmentActionBtnsBinding
+import com.tatoeapps.tracktimer.databinding.FragmentSpeedBtnsBinding
 import com.tatoeapps.tracktimer.interfaces.SpeedSliderInterface
 import com.tatoeapps.tracktimer.viewmodel.MainViewModel
 import kotlinx.android.synthetic.main.fragment_speed_btns.*
@@ -24,8 +27,11 @@ class SpeedSliderFragment : Fragment() {
         const val defaultSpeedFactor = 1.0f
     }
 
+    private var fragmentSpeedBtnsBinding: FragmentSpeedBtnsBinding? = null
+
     private lateinit var speedSliderInterface: SpeedSliderInterface
     private lateinit var mainViewModel: MainViewModel
+    var currentSpeedText = MutableLiveData(defaultSpeedFactor.toString())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,7 +46,16 @@ class SpeedSliderFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_speed_btns, container, false)
+        val binding = FragmentSpeedBtnsBinding.inflate(inflater, container, false)
+        fragmentSpeedBtnsBinding = binding
+        binding.lifecycleOwner=viewLifecycleOwner
+        binding.speedSliderFragment = this
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        fragmentSpeedBtnsBinding=null
+        super.onDestroyView()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -53,31 +68,13 @@ class SpeedSliderFragment : Fragment() {
 
             override fun onStopTrackingTouch(slider: Slider) {
                 speedSliderInterface.setSpeed(slider.value)
-                updateSpeedDisplay((slider.value / 100).toString())
+                currentSpeedText.postValue((slider.value / 100).toString())
             }
         })
 
-        view.speed_slider.addOnChangeListener { slider, _, _ -> updateSpeedDisplay((slider.value / 100).toString()) }
-
-        view.add_speed_btn.setOnClickListener {
-            if (speed_slider.value < maxSpeedValue) {
-                val newSpeed = speed_slider.value + intervalValue
-                speed_slider.value = newSpeed
-                val speedString = (newSpeed / 100).toString()
-                speed_value_display.text = speedString
-                speedSliderInterface.setSpeed(newSpeed)
-            }
-        }
-        view.minus_speed_btn.setOnClickListener {
-            if (speed_slider.value > minSpeedValue) {
-                val newSpeed = speed_slider.value - intervalValue
-                speed_slider.value = newSpeed
-                val speedString = (newSpeed / 100).toString()
-                speed_value_display.text = speedString
-                speedSliderInterface.setSpeed(newSpeed)
-            }
-        }
-
+        view.speed_slider.addOnChangeListener { slider, _, _ -> currentSpeedText.postValue((slider.value / 100).toString()) }
+//        currentSpeedText.observe(viewLifecycleOwner, Observer { newSpeed ->
+//        })
         mainViewModel.speedReset.observe(viewLifecycleOwner, Observer { speedReset ->
             if (speedReset) {
                 resetSpeed()
@@ -86,15 +83,31 @@ class SpeedSliderFragment : Fragment() {
 
     }
 
+    fun addSpeed() {
+        if (speed_slider.value < maxSpeedValue) {
+            val newSpeed = speed_slider.value + intervalValue
+            speed_slider.value = newSpeed
+            speedSliderInterface.setSpeed(newSpeed)
+
+            currentSpeedText.postValue((newSpeed / 100).toString())
+        }
+    }
+
+    fun minusSpeed() {
+        if (speed_slider.value > minSpeedValue) {
+            val newSpeed = speed_slider.value - intervalValue
+            speed_slider.value = newSpeed
+            speedSliderInterface.setSpeed(newSpeed)
+
+            currentSpeedText.postValue ((newSpeed / 100).toString())
+        }
+    }
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (context is SpeedSliderInterface) {
             speedSliderInterface = context
         }
-    }
-
-    fun updateSpeedDisplay(newSpeed: String) {
-        speed_value_display.text = newSpeed
     }
 
     fun resetSpeed() {
