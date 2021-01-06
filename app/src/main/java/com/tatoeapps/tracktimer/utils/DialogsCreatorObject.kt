@@ -6,10 +6,8 @@ import android.text.SpannableString
 import android.text.method.LinkMovementMethod
 import android.text.util.Linkify
 import android.view.View
-import android.widget.TextView
 import com.android.billingclient.api.SkuDetails
 import com.tatoeapps.tracktimer.R
-import com.tatoeapps.tracktimer.fragments.StartFragment
 import com.tatoeapps.tracktimer.main.MainActivity
 import kotlinx.android.synthetic.main.dialog_buy_subscription.view.*
 import kotlinx.android.synthetic.main.dialog_loading.view.*
@@ -107,22 +105,20 @@ object DialogsCreatorObject {
         return builder.create()
     }
 
-    fun getTrialStartDialog(
+    suspend fun getTrialStartDialog(
         context: Context,
         dialogWindowInterface: DialogWindowInterface
     ): AlertDialog {
-
+        var preferencesDataStore = PreferencesDataStore.getInstance(context)
         val alertDialogBuilder = AlertDialog.Builder(context)
         alertDialogBuilder.setMessage(
-            "${context.resources.getString(R.string.trial_prompt_segment_1)} ${Utils.numberVideosTimingFree} ${
+            "${context.resources.getString(R.string.trial_prompt_segment_1)} ${preferencesDataStore.numberVideosTimingFree} ${
                 context.resources.getString(
                     R.string.trial_prompt_segment_2
                 )
             }" +
                     " ${context.resources.getString(R.string.trial_prompt_segment_3)} ${
-                        Utils.getCountOfFreeDailyTiming(
-                            context
-                        )
+                        preferencesDataStore.getCountOfFreeDailyTiming()
                     }${context.resources.getString(R.string.trial_prompt_segment_4)}"
         )
         alertDialogBuilder.setCancelable(true)
@@ -177,10 +173,12 @@ object DialogsCreatorObject {
     fun getErrorDialog(mainActivity: MainActivity): AlertDialog {
         val alertDialogBuilder = AlertDialog.Builder(mainActivity)
         val dialogCustomView = mainActivity.layoutInflater.inflate(R.layout.dialog_loading, null)
-        dialogCustomView!!.loading_dialog_text?.text =mainActivity.getString(R.string.internet_problem_text)
-        dialogCustomView.indeterminateBar?.visibility=View.GONE
+        dialogCustomView!!.loading_dialog_text?.text =
+            mainActivity.getString(R.string.internet_problem_text)
+        dialogCustomView.indeterminateBar?.visibility = View.GONE
         alertDialogBuilder.setView(dialogCustomView).setCancelable(false)
-        return alertDialogBuilder.create()    }
+        return alertDialogBuilder.create()
+    }
 
     fun getConfirmQuitDialog(
         mainActivity: MainActivity,
@@ -193,7 +191,7 @@ object DialogsCreatorObject {
             ) { _, _ ->
                 dialogWindowInterface.onPositiveButton()
             }
-            .setNegativeButton("No") { _,_ ->
+            .setNegativeButton("No") { _, _ ->
                 dialogWindowInterface.onNegativeButton()
             }
             .setCancelable(true)

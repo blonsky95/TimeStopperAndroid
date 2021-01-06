@@ -1,9 +1,9 @@
 <component name="libraryTable">
   <library name="Gradle: com.google.android.gms:play-services-cronet:17.0.0@aar">
     <CLASSES>
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/9a9b5a4dab5a157b2d38f37721cfc88d/jetified-play-services-cronet-17.0.0/AndroidManifest.xml" />
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/9a9b5a4dab5a157b2d38f37721cfc88d/jetified-play-services-cronet-17.0.0/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/9a9b5a4dab5a157b2d38f37721cfc88d/jetified-play-services-cronet-17.0.0/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/c3344309f3fdb1faa116ad56838f32d6/jetified-play-services-cronet-17.0.0/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/c3344309f3fdb1faa116ad56838f32d6/jetified-play-services-cronet-17.0.0/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/c3344309f3fdb1faa116ad56838f32d6/jetified-play-services-cronet-17.0.0/res" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.android.gms/play-services-cronet/17.0.0/16423df97a175c7a160bcdecfd39a2f77c9ef413/play-services-cronet-17.0.0-javadoc.jar!/" />

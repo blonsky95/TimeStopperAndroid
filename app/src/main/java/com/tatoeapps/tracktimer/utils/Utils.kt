@@ -59,205 +59,186 @@ object Utils {
      */
 
 
-    const val numberVideosTimingFree = 1
-
-    fun canStartTimingTrial(context: Context): Boolean {
-        val dayOfYear = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
-        if (dayOfYear == getPrefDayOfYearTrial(context)) {
-            //so the user has done at least one video if the dates are matching
-            if (getCountOfFreeDailyTiming(context) >= numberVideosTimingFree) {
-                //too many videos for free trial, has expired
-                //expired
-                return false
-            }
-        } else {
-            //its a different day from the last use, so reset count to 0, and return true later
-            addOneToCountOfFreeDailyTiming(
-                context,
-                getCountOfFreeDailyTiming(context),
-                true
-            )
-        }
-        return true
-    }
+//    const val numberVideosTimingFree = 1
+//
+//    fun canStartTimingTrial(context: Context): Boolean {
+//        val dayOfYear = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
+//        if (dayOfYear == getPrefDayOfYearTrial(context)) {
+//            //so the user has done at least one video if the dates are matching
+//            if (getCountOfFreeDailyTiming(context) >= numberVideosTimingFree) {
+//                //too many videos for free trial, has expired
+//                //expired
+//                return false
+//            }
+//        } else {
+//            //its a different day from the last use, so reset count to 0, and return true later
+//            addOneToCountOfFreeDailyTiming(
+//                context,
+//                getCountOfFreeDailyTiming(context),
+//                true
+//            )
+//        }
+//        return true
+//    }
 
 
     /**
      * SHARED PREFS STUFF
      */
 
-    private fun hasUserReviewedApp(context: Context): Boolean {
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_has_reviewed), Context.MODE_PRIVATE
-        )
-        val defaultValue = false
-        return sharedPref.getBoolean(
-            context.getString(R.string.preference_has_reviewed),
-            defaultValue
-        )
-    }
+//    private fun hasUserReviewedApp(context: Context): Boolean {
+//        val sharedPref = context.getSharedPreferences(
+//            context.getString(R.string.preference_has_reviewed), Context.MODE_PRIVATE
+//        )
+//        val defaultValue = false
+//        return sharedPref.getBoolean(
+//            context.getString(R.string.preference_has_reviewed),
+//            defaultValue
+//        )
+//    }
+//
+//    fun updateHasUserReviewedApp(context: Context, isSubscribed: Boolean) {
+//        val sharedPref = context.getSharedPreferences(
+//            context.getString(R.string.preference_has_reviewed), Context.MODE_PRIVATE
+//        )
+//        with(sharedPref.edit()) {
+//            putBoolean(context.getString(R.string.preference_has_reviewed), isSubscribed)
+//            apply()
+//        }
+//    }
 
-    fun updateHasUserReviewedApp(context: Context, isSubscribed: Boolean) {
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_has_reviewed), Context.MODE_PRIVATE
-        )
-        with(sharedPref.edit()) {
-            putBoolean(context.getString(R.string.preference_has_reviewed), isSubscribed)
-            apply()
-        }
-    }
+//    private const val daysBetweenPrompt = 14
+//    private const val MILLIS_IN_ONE_DAY = 86400000
+//
+//    fun shouldShowRatingPrompt(context: Context, currentSystemTimeInMillis: Long): Boolean {
+//        if (hasUserReviewedApp(context)) {
+//            return false
+//        }
+//
+//        val sharedPref = context.getSharedPreferences(
+//            context.getString(R.string.preference_date_rating_prompt), Context.MODE_PRIVATE
+//        )
+//        val lastPromptTimeInMillis =
+//            sharedPref.getLong(context.getString(R.string.preference_date_rating_prompt), -1L)
+//        return if (lastPromptTimeInMillis > 0 && currentSystemTimeInMillis >= lastPromptTimeInMillis + (daysBetweenPrompt * MILLIS_IN_ONE_DAY)) {
+//            //14 or more days have passed since update or first install
+//            updateTimeOfLastPrompt(context, currentSystemTimeInMillis)
+//            true
+//        } else {
+//            if (lastPromptTimeInMillis <= 0) {
+//                updateTimeOfLastPrompt(context, currentSystemTimeInMillis)
+//            }
+//            false
+//        }
+//
+//    }
 
-    private const val daysBetweenPrompt = 14
-    private const val MILLIS_IN_ONE_DAY = 86400000
-
-    fun shouldShowRatingPrompt(context: Context, currentSystemTimeInMillis: Long): Boolean {
-        if (hasUserReviewedApp(context)) {
-            return false
-        }
-
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_date_rating_prompt), Context.MODE_PRIVATE
-        )
-        val lastPromptTimeInMillis =
-            sharedPref.getLong(context.getString(R.string.preference_date_rating_prompt), -1L)
-        return if (lastPromptTimeInMillis > 0 && currentSystemTimeInMillis >= lastPromptTimeInMillis + (daysBetweenPrompt * MILLIS_IN_ONE_DAY)) {
-            //14 or more days have passed since update or first install
-            updateTimeOfLastPrompt(context, currentSystemTimeInMillis)
-            true
-        } else {
-            if (lastPromptTimeInMillis <= 0) {
-                updateTimeOfLastPrompt(context, currentSystemTimeInMillis)
-            }
-            false
-        }
-
-    }
-
-    private fun updateTimeOfLastPrompt(context: Context, systemTimeInMillis: Long) {
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_date_rating_prompt), Context.MODE_PRIVATE
-        )
-        with(sharedPref.edit()) {
-            putLong(context.getString(R.string.preference_date_rating_prompt), systemTimeInMillis)
-            apply()
-        }
-    }
+//    private fun updateTimeOfLastPrompt(context: Context, systemTimeInMillis: Long) {
+//        val sharedPref = context.getSharedPreferences(
+//            context.getString(R.string.preference_date_rating_prompt), Context.MODE_PRIVATE
+//        )
+//        with(sharedPref.edit()) {
+//            putLong(context.getString(R.string.preference_date_rating_prompt), systemTimeInMillis)
+//            apply()
+//        }
+//    }
 
 
-    fun isUserSubscribed(context: Context): Boolean {
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_is_subscribed), Context.MODE_PRIVATE
-        )
-        val defaultValue = false
-        return sharedPref.getBoolean(
-            context.getString(R.string.preference_is_subscribed),
-            defaultValue
-        )
-    }
+//    fun isUserSubscribed(context: Context): Boolean {
+//        val sharedPref = context.getSharedPreferences(
+//            context.getString(R.string.preference_is_subscribed), Context.MODE_PRIVATE
+//        )
+//        val defaultValue = false
+//        return sharedPref.getBoolean(
+//            context.getString(R.string.preference_is_subscribed),
+//            defaultValue
+//        )
+//    }
+//
+//    fun updateIsUserSubscribed(context: Context, isSubscribed: Boolean) {
+//        val sharedPref = context.getSharedPreferences(
+//            context.getString(R.string.preference_is_subscribed), Context.MODE_PRIVATE
+//        )
+//        with(sharedPref.edit()) {
+//            putBoolean(context.getString(R.string.preference_is_subscribed), isSubscribed)
+//            apply()
+//        }
+//    }
 
-    fun updateIsUserSubscribed(context: Context, isSubscribed: Boolean) {
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_is_subscribed), Context.MODE_PRIVATE
-        )
-        with(sharedPref.edit()) {
-            putBoolean(context.getString(R.string.preference_is_subscribed), isSubscribed)
-            apply()
-        }
-    }
+//    fun getIsTimingFreeActive(context: Context): Boolean {
+//        val sharedPref = context.getSharedPreferences(
+//            context.getString(R.string.preference_is_trial_on), Context.MODE_PRIVATE
+//        )
+//        val defaultValue = false
+//        return sharedPref.getBoolean(
+//            context.getString(R.string.preference_is_trial_on),
+//            defaultValue
+//        )
+//    }
+//
+//    fun updateIsTimingFreeActive(context: Context, isActive: Boolean) {
+//        val sharedPref = context.getSharedPreferences(
+//            context.getString(R.string.preference_is_trial_on), Context.MODE_PRIVATE
+//        )
+//        with(sharedPref.edit()) {
+//            putBoolean(context.getString(R.string.preference_is_trial_on), isActive)
+//            apply()
+//        }
+//    }
+//
+//    private fun getPrefDayOfYearTrial(context: Context): Int {
+//        val sharedPref = context.getSharedPreferences(
+//            context.getString(R.string.preference_day_of_year_last_trial), Context.MODE_PRIVATE
+//        )
+//        val defaultValue = -1
+//        return sharedPref.getInt(
+//            context.getString(R.string.preference_day_of_year_last_trial),
+//            defaultValue
+//        )
+//    }
+//
+//    fun updatePrefDayOfYearLastTiming(context: Context, int: Int) {
+//        val sharedPref = context.getSharedPreferences(
+//            context.getString(R.string.preference_day_of_year_last_trial), Context.MODE_PRIVATE
+//        )
+//        with(sharedPref.edit()) {
+//            putInt(context.getString(R.string.preference_day_of_year_last_trial), int)
+//            apply()
+//        }
+//    }
+//
+//    fun getCountOfFreeDailyTiming(context: Context): Int {
+//        val sharedPref = context.getSharedPreferences(
+//            context.getString(R.string.preference_count_video_timing_trial),
+//            Context.MODE_PRIVATE
+//        )
+//        val defaultValue = 0
+//        return sharedPref.getInt(
+//            context.getString(R.string.preference_count_video_timing_trial),
+//            defaultValue
+//        )
+//    }
+//
+//    fun addOneToCountOfFreeDailyTiming(
+//        context: Context,
+//        countBeforeUpdate: Int,
+//        resetCounter: Boolean = false
+//    ) {
+//        val sharedPref = context.getSharedPreferences(
+//            context.getString(R.string.preference_count_video_timing_trial),
+//            Context.MODE_PRIVATE
+//        )
+//        var newCount = countBeforeUpdate + 1
+//        if (resetCounter) {
+//            newCount = 0
+//        }
+//        with(sharedPref.edit()) {
+//            putInt(context.getString(R.string.preference_count_video_timing_trial), newCount)
+//            apply()
+//        }
+//    }
+//
 
-    fun getIsTimingFreeActive(context: Context): Boolean {
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_is_trial_on), Context.MODE_PRIVATE
-        )
-        val defaultValue = false
-        return sharedPref.getBoolean(
-            context.getString(R.string.preference_is_trial_on),
-            defaultValue
-        )
-    }
-
-    fun updateIsTimingFreeActive(context: Context, isActive: Boolean) {
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_is_trial_on), Context.MODE_PRIVATE
-        )
-        with(sharedPref.edit()) {
-            putBoolean(context.getString(R.string.preference_is_trial_on), isActive)
-            apply()
-        }
-    }
-
-    private fun getPrefDayOfYearTrial(context: Context): Int {
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_day_of_year_last_trial), Context.MODE_PRIVATE
-        )
-        val defaultValue = -1
-        return sharedPref.getInt(
-            context.getString(R.string.preference_day_of_year_last_trial),
-            defaultValue
-        )
-    }
-
-    fun updatePrefDayOfYearLastTiming(context: Context, int: Int) {
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_day_of_year_last_trial), Context.MODE_PRIVATE
-        )
-        with(sharedPref.edit()) {
-            putInt(context.getString(R.string.preference_day_of_year_last_trial), int)
-            apply()
-        }
-    }
-
-    fun getCountOfFreeDailyTiming(context: Context): Int {
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_count_video_timing_trial),
-            Context.MODE_PRIVATE
-        )
-        val defaultValue = 0
-        return sharedPref.getInt(
-            context.getString(R.string.preference_count_video_timing_trial),
-            defaultValue
-        )
-    }
-
-    fun addOneToCountOfFreeDailyTiming(
-        context: Context,
-        countBeforeUpdate: Int,
-        resetCounter: Boolean = false
-    ) {
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_count_video_timing_trial),
-            Context.MODE_PRIVATE
-        )
-        var newCount = countBeforeUpdate + 1
-        if (resetCounter) {
-            newCount = 0
-        }
-        with(sharedPref.edit()) {
-            putInt(context.getString(R.string.preference_count_video_timing_trial), newCount)
-            apply()
-        }
-    }
-
-    fun isUserFirstTimer(context: Context): Boolean {
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_first_time_key), Context.MODE_PRIVATE
-        )
-        val defaultValue = true
-        return sharedPref.getBoolean(
-            context.getString(R.string.preference_first_time_key),
-            defaultValue
-        )
-    }
-
-    fun updateUserFirstTimer(context: Context, isFirstTime: Boolean) {
-        val sharedPref = context.getSharedPreferences(
-            context.getString(R.string.preference_first_time_key), Context.MODE_PRIVATE
-        )
-        with(sharedPref.edit()) {
-            putBoolean(context.getString(R.string.preference_first_time_key), isFirstTime)
-            apply()
-        }
-    }
 
 
     /**

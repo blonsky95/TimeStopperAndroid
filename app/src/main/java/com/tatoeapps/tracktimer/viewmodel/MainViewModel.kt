@@ -12,6 +12,7 @@ import androidx.core.view.GestureDetectorCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.SkuDetails
 import com.google.android.exoplayer2.MediaItem
@@ -30,6 +31,7 @@ import com.tatoeapps.tracktimer.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.util.*
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -47,6 +49,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * launched by uiScope by calling viewModelJob.cancel()
      */
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
+
+    lateinit var preferencesDataStore: PreferencesDataStore
+
+    fun initPDS(context: Context) {
+        preferencesDataStore=PreferencesDataStore.getInstance(context)
+    }
+//    override fun onCreate() {
+//        preferencesDataStore=PreferencesDataStore.getInstance(context)
+//    }
 
     /**
      * Cancel all coroutines when the ViewModel is cleared
@@ -226,8 +237,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * PROMPT USER APP RATING
      */
-    fun askUserIfWantToRateApp(mainActivity: MainActivity) {
-        if (Utils.shouldShowRatingPrompt(mainActivity, System.currentTimeMillis())) {
+    suspend fun askUserIfWantToRateApp(mainActivity: MainActivity) {
+        if (preferencesDataStore.shouldShowRatingPrompt(System.currentTimeMillis())) {
             val dialogWindowInterface =
                 object : DialogsCreatorObject.DialogWindowInterface {
                     override fun onPositiveButton() {
@@ -251,7 +262,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val reviewInfo = reviewRequest.result
                 val flow = manager.launchReviewFlow(mainActivity, reviewInfo)
                 flow.addOnCompleteListener { _ ->
-                    Utils.updateHasUserReviewedApp(mainActivity, true)
+                    viewModelScope.launch {
+                        preferencesDataStore.updateHasUserReviewedApp(true)
+                    }
                 }
             }
         }
@@ -349,32 +362,34 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      */
 
     private fun updateFreeDailyTiming(context: Context) {
-        if (Utils.getIsTimingFreeActive(context)) {
-            Utils.addOneToCountOfFreeDailyTiming(
-                context,
-                Utils.getCountOfFreeDailyTiming(context)
-            )
-            Utils.updatePrefDayOfYearLastTiming(
-                context,
-                Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
-            )
-            Utils.updateIsTimingFreeActive(context, false)
+        viewModelScope.launch {
+            if (preferencesDataStore.getIsTimingFreeActive()) {
+                preferencesDataStore.addOneToCountOfFreeDailyTiming(
+                    preferencesDataStore.getCountOfFreeDailyTiming()
+                )
+                preferencesDataStore.updatePrefDayOfYearLastTiming(
+                    Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
+                )
+                preferencesDataStore.updateIsTimingFreeActive(false)
+            }
         }
     }
 
-    fun checkIfCanStartTiming(mainActivity: MainActivity) {
-        if (Utils.isUserSubscribed(mainActivity) || Utils.getIsTimingFreeActive(mainActivity)) {
+    suspend fun checkIfCanStartTiming(mainActivity: MainActivity) {
+        if (preferencesDataStore.isUserSubscribed() || preferencesDataStore.getIsTimingFreeActive()) {
             //user has already started the trial, so its in the same video as the one he started it with or has not exceeded count
             startTiming()
         } else {
-            if (Utils.canStartTimingTrial(mainActivity)) {
+            if (preferencesDataStore.canStartTimingTrial()) {
 
                 //starts the trial - put dialog saying you are starting trial
                 val dialogPositiveNegativeInterface =
                     object : DialogsCreatorObject.DialogWindowInterface {
                         override fun onPositiveButton() {
                             //this is the OK button
-                            Utils.updateIsTimingFreeActive(mainActivity, true)
+                            viewModelScope.launch {
+                                preferencesDataStore.updateIsTimingFreeActive(true)
+                            }
                             startTiming()
                         }
 

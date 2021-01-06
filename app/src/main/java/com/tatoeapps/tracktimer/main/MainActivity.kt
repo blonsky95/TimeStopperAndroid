@@ -20,6 +20,7 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.lifecycleScope
 import com.android.billingclient.api.SkuDetails
 import com.google.android.exoplayer2.ui.DefaultTimeBar
 import com.tatoeapps.tracktimer.BuildConfig
@@ -35,6 +36,7 @@ import com.tatoeapps.tracktimer.interfaces.ActionButtonsInterface
 import com.tatoeapps.tracktimer.interfaces.GuideInterface
 import com.tatoeapps.tracktimer.interfaces.MediaPlayerCustomActions
 import com.tatoeapps.tracktimer.interfaces.SpeedSliderInterface
+import com.tatoeapps.tracktimer.utils.PreferencesDataStore
 import com.tatoeapps.tracktimer.utils.Utils
 import com.tatoeapps.tracktimer.utils.Utils.getHorizontalFragmentTransition
 import com.tatoeapps.tracktimer.utils.Utils.getNoAnimationTransition
@@ -42,6 +44,7 @@ import com.tatoeapps.tracktimer.utils.Utils.getVerticalFragmentTransition
 import com.tatoeapps.tracktimer.viewmodel.MainViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.exo_player_control_view.*
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 
@@ -52,6 +55,7 @@ class MainActivity : AppCompatActivity(),
     GuideInterface {
 
     lateinit var mainViewModel: MainViewModel
+    lateinit var mainActivity: MainActivity
 
     private var alertDialog: AlertDialog? = null
 
@@ -64,16 +68,20 @@ class MainActivity : AppCompatActivity(),
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
+        mainActivity=this
 
         mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+        //change this next line when DI - Dagger Hilt
+        mainViewModel.initPDS(this)
 
         mainViewModel.startBillingClientLifecycle(application, this, lifecycle)
 
-        if (Utils.isUserFirstTimer(this)) {
+        //todo make this better
+        if (PreferencesDataStore.isUserFirstTimer(this)) {
             startActivity(Intent(this, OnBoardingActivity::class.java))
         } else {
 
-            val binding: com.tatoeapps.tracktimer.databinding.ActivityMainBinding =
+            val binding: ActivityMainBinding =
                 DataBindingUtil.setContentView(this, layout.activity_main)
             binding.mainViewModel = mainViewModel
             binding.lifecycleOwner = this
@@ -108,7 +116,9 @@ class MainActivity : AppCompatActivity(),
      */
 
     private fun askUserIfWantToRateApp() {
-        mainViewModel.askUserIfWantToRateApp(this)
+        lifecycleScope.launch {
+            mainViewModel.askUserIfWantToRateApp(mainActivity)
+        }
     }
 
     private fun letUserRateApp() {
@@ -260,7 +270,10 @@ class MainActivity : AppCompatActivity(),
 
     override fun startTiming() {
         //checks if timing feature is available, and then also calls startTiming()
-        mainViewModel.checkIfCanStartTiming(this)
+        val mainActivity = this
+        lifecycleScope.launch {
+            mainViewModel.checkIfCanStartTiming(mainActivity)
+        }
     }
 
     override fun lapTiming() {

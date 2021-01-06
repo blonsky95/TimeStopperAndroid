@@ -1,9 +1,9 @@
 <component name="libraryTable">
   <library name="Gradle: com.android.billingclient:billing-ktx:3.0.2@aar">
     <CLASSES>
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/dd21128c13a798486518f2472911c5a5/jetified-billing-ktx-3.0.2/AndroidManifest.xml" />
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/dd21128c13a798486518f2472911c5a5/jetified-billing-ktx-3.0.2/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/dd21128c13a798486518f2472911c5a5/jetified-billing-ktx-3.0.2/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/48cf4ea7f66e36c4401cf546472a2e96/jetified-billing-ktx-3.0.2/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/48cf4ea7f66e36c4401cf546472a2e96/jetified-billing-ktx-3.0.2/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/48cf4ea7f66e36c4401cf546472a2e96/jetified-billing-ktx-3.0.2/res" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.android.billingclient/billing-ktx/3.0.2/21c610574bc5e53ee521d01d04222938ba4736ea/billing-ktx-3.0.2-javadoc.jar!/" />

@@ -1,12 +1,11 @@
 package com.tatoeapps.tracktimer.utils
 
 import android.app.Application
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.*
 import com.android.billingclient.api.*
 import com.tatoeapps.tracktimer.main.MainActivity
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -30,12 +29,13 @@ import timber.log.Timber
  **/
 class BillingClientLifecycle(
     val app: Application,
-    val mainActivity: MainActivity,
+    private val mainActivity: MainActivity,
     lifecycle: Lifecycle
 
 ) : LifecycleObserver, PurchasesUpdatedListener, BillingClientStateListener,
     SkuDetailsResponseListener {
 
+    var preferencesDataStore: PreferencesDataStore = PreferencesDataStore.getInstance(mainActivity)
 
     //is a singleton - but we dont want it to be an object because it has lifecycle related behaviour
     companion object {
@@ -90,7 +90,9 @@ class BillingClientLifecycle(
         //verifies the purchase
         if (purchase.purchaseState === Purchase.PurchaseState.PURCHASED) {
             //grant entitlement of purchase here
-            Utils.updateIsUserSubscribed(mainActivity, true)
+            GlobalScope.launch {
+                preferencesDataStore.updateIsUserSubscribed( true)
+            }
             if (!purchase.isAcknowledged) {
                 val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
                     .setPurchaseToken(purchase.purchaseToken)
@@ -223,7 +225,9 @@ class BillingClientLifecycle(
             //user doesnt have a subscription
             if (!userInterfaceRequireUpdating) {
                 //This would be run at the start, and no windows need to appear, it just updates the state of the sub pref
-                Utils.updateIsUserSubscribed(mainActivity,false)
+                GlobalScope.launch {
+                    preferencesDataStore.updateIsUserSubscribed(false)
+                }
             } else {
                 //In this case, user wants to see the subscriptions
                 querySkuDetails()
