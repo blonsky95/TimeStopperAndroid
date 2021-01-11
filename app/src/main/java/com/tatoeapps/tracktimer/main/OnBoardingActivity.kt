@@ -10,29 +10,35 @@ import com.tatoeapps.tracktimer.fragments.OnBoardingFragment
 import com.tatoeapps.tracktimer.utils.OnBoardingViewPagerAdapter
 import com.tatoeapps.tracktimer.utils.PreferencesDataStore
 import com.tatoeapps.tracktimer.utils.Utils
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_onboarding.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 class OnBoardingActivity : AppCompatActivity(), OnBoardingFragment.OnBoardingListener {
 
     private var currentPage = 0
     private val fragments = ArrayList<Fragment>()
-    lateinit var preferencesDataStore: PreferencesDataStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_onboarding)
 
-        preferencesDataStore=PreferencesDataStore.getInstance(this)
+        initAdapter()
+        registerPagerChangeCallBack()
+    }
 
+    private fun initAdapter() {
         val adapter = OnBoardingViewPagerAdapter(this)
         for (i in 0..1) {
             fragments.add(OnBoardingFragment.newInstance("$i", this))
         }
         adapter.addFragments(fragments)
         view_pager.adapter = adapter
+    }
 
+    private fun registerPagerChangeCallBack() {
         // keep track of the current screen
         view_pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {

@@ -5,7 +5,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -15,9 +18,12 @@ import com.tatoeapps.tracktimer.databinding.FragmentActionBtnsBinding
 import com.tatoeapps.tracktimer.databinding.FragmentSpeedBtnsBinding
 import com.tatoeapps.tracktimer.interfaces.SpeedSliderInterface
 import com.tatoeapps.tracktimer.viewmodel.MainViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_speed_btns.*
 import kotlinx.android.synthetic.main.fragment_speed_btns.view.*
+import timber.log.Timber
 
+@AndroidEntryPoint
 class SpeedSliderFragment : Fragment() {
 
     companion object {
@@ -30,16 +36,10 @@ class SpeedSliderFragment : Fragment() {
     private var fragmentSpeedBtnsBinding: FragmentSpeedBtnsBinding? = null
 
     private lateinit var speedSliderInterface: SpeedSliderInterface
-    private lateinit var mainViewModel: MainViewModel
+
+    private val mainViewModel: MainViewModel by activityViewModels()
+
     var currentSpeedText = MutableLiveData(defaultSpeedFactor.toString())
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        mainViewModel = activity?.run {
-            ViewModelProviders.of(this)[MainViewModel::class.java]
-        } ?: throw Exception("Invalid Activity")
-    }
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -73,8 +73,7 @@ class SpeedSliderFragment : Fragment() {
         })
 
         view.speed_slider.addOnChangeListener { slider, _, _ -> currentSpeedText.postValue((slider.value / 100).toString()) }
-//        currentSpeedText.observe(viewLifecycleOwner, Observer { newSpeed ->
-//        })
+
         mainViewModel.speedReset.observe(viewLifecycleOwner, Observer { speedReset ->
             if (speedReset) {
                 resetSpeed()
@@ -110,7 +109,7 @@ class SpeedSliderFragment : Fragment() {
         }
     }
 
-    fun resetSpeed() {
+    private fun resetSpeed() {
         speedSliderInterface.setSpeed(defaultSpeedFactor * 100)
         speed_slider.value = defaultSpeedFactor * 100
         speed_value_display.text = defaultSpeedFactor.toString()

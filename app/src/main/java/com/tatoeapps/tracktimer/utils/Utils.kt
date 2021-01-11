@@ -354,7 +354,7 @@ object Utils {
     }
 
 
-    private class MyDefaultRendererFactory(context: Context) :
+     class MyDefaultRendererFactory(context: Context) :
         DefaultRenderersFactory(context) {
         override fun buildAudioRenderers(
             context: Context,

@@ -9,10 +9,9 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.hilt.Assisted
+import androidx.hilt.lifecycle.ViewModelInject
+import androidx.lifecycle.*
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.SkuDetails
 import com.google.android.exoplayer2.MediaItem
@@ -28,14 +27,23 @@ import com.tatoeapps.tracktimer.interfaces.MediaPlayerCustomActions
 import com.tatoeapps.tracktimer.interfaces.TestInterface
 import com.tatoeapps.tracktimer.main.MainActivity
 import com.tatoeapps.tracktimer.utils.*
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.qualifiers.ActivityContext
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.util.*
+import javax.inject.Inject
+import javax.inject.Named
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
-
+class MainViewModel @ViewModelInject constructor(
+    application: Application,
+    @Named("PreferencesDataStore") var preferencesDataStore: PreferencesDataStore,
+    @Named("exoPlayer") var exoPlayer: SimpleExoPlayer,
+    @Named("dataSourceFactory") var dataSourceFactory: DataSource.Factory
+) : AndroidViewModel(application) {
 
     /**
      * This is the job for all coroutines started by this ViewModel.
@@ -49,15 +57,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * launched by uiScope by calling viewModelJob.cancel()
      */
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
-
-    lateinit var preferencesDataStore: PreferencesDataStore
-
-    fun initPDS(context: Context) {
-        preferencesDataStore=PreferencesDataStore.getInstance(context)
-    }
-//    override fun onCreate() {
-//        preferencesDataStore=PreferencesDataStore.getInstance(context)
-//    }
 
     /**
      * Cancel all coroutines when the ViewModel is cleared
@@ -82,10 +81,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     //Livedata to configure player to play each video
     //Set player control buttons actions
     val customPlayerControlActions = MutableLiveData<MediaPlayerCustomActions?>(null)
+
     //set video playback speed to 1.0
     val speedReset = MutableLiveData<Boolean>(false)
 
+    //todo can I inject this?
     private var videoPlayerController = VideoPlayerController() //controls video player
+    //todo can I inject this?
     private var timeSplitsController: TimeSplitsController? = null //controls timing
 
     lateinit var billingClientLifecycle: BillingClientLifecycle //controls billing
@@ -149,25 +151,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     //These hide nav and status bar
                     or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                     or View.SYSTEM_UI_FLAG_FULLSCREEN)
-    }
-
-
-    /**
-    Configure exoplayer - video listener
-     */
-
-    private fun getExoPlayerInstance(context: Context): SimpleExoPlayer? {
-        val exoPlayer = Utils.getExoPlayerInstance(context)
-        exoPlayer.setSeekParameters(SeekParameters.EXACT) //this is the default anyway
-
-        return exoPlayer
-    }
-
-    private fun getDataSourceFactoryInstance(
-        context: Context,
-        application: Application
-    ): DataSource.Factory {
-        return Utils.getDataSourceFactoryInstance(context, application)
     }
 
     private fun configurePlayerVideoListener(exoPlayer: SimpleExoPlayer, surface: ZoomSurfaceView) {
@@ -237,7 +220,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * PROMPT USER APP RATING
      */
-    suspend fun askUserIfWantToRateApp(mainActivity: MainActivity) {
+    suspend fun askUserIfWantToRateApp(context: Context) {
         if (preferencesDataStore.shouldShowRatingPrompt(System.currentTimeMillis())) {
             val dialogWindowInterface =
                 object : DialogsCreatorObject.DialogWindowInterface {
@@ -248,7 +231,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
             val suggestRateAppDialog =
-                DialogsCreatorObject.getRatingPromptDialog(mainActivity, dialogWindowInterface)
+                DialogsCreatorObject.getRatingPromptDialog(context, dialogWindowInterface)
             suggestRateAppDialog.setCancelable(true)
             suggestRateAppDialog.show()
         }
@@ -278,10 +261,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         surfaceView: ZoomSurfaceView?,
         playerControls: PlayerControlView?
     ) {
-        val exoPlayer = getExoPlayerInstance(context)
-        val dataSourceFactory = getDataSourceFactoryInstance(context, getApplication())
 
-        configurePlayerVideoListener(exoPlayer!!, surfaceView!!)
+        configurePlayerVideoListener(exoPlayer, surfaceView!!)
         configureVideoSurface(exoPlayer, surfaceView, context)
         configurePlayerControls(exoPlayer, playerControls!!)
 
@@ -312,7 +293,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun prepareForNewVideo(context: Context, data: Uri?) {
         videoPlayerController.prepareVideoSource(MediaItem.fromUri(data!!))
         videoPlayerController.configureExoPlayerButtonsActions(context, data)
-        updateFreeDailyTiming(context)
+        updateFreeDailyTiming()
 
         customPlayerControlActions.postValue(videoPlayerController.mediaPlayerCustomActions)
         timingVisibilityAction.postValue(Utils.VISIBILITY_HIDE)
@@ -361,7 +342,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * in which case pref 2 is increased 1, and pref 1 too, lastly pref 3 is reset to non active
      */
 
-    private fun updateFreeDailyTiming(context: Context) {
+    private fun updateFreeDailyTiming() {
         viewModelScope.launch {
             if (preferencesDataStore.getIsTimingFreeActive()) {
                 preferencesDataStore.addOneToCountOfFreeDailyTiming(
@@ -402,7 +383,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val alertDialog: AlertDialog =
                     DialogsCreatorObject.getTrialStartDialog(
                         mainActivity,
-                        dialogPositiveNegativeInterface
+                        dialogPositiveNegativeInterface,
+                        preferencesDataStore
                     )
                 alertDialog.show()
 
@@ -441,7 +423,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         lifecycle: Lifecycle
     ) {
         billingClientLifecycle =
-            BillingClientLifecycle.getInstance(application, mainActivity, lifecycle)
+            BillingClientLifecycle.getInstance(
+                application,
+                mainActivity,
+                preferencesDataStore,
+                lifecycle
+            )
         checkForSubscriptions(mainActivity, false)
     }
 

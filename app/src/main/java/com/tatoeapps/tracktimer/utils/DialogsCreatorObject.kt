@@ -30,17 +30,17 @@ object DialogsCreatorObject {
     }
 
     fun getRatingPromptDialog(
-        mainActivity: MainActivity,
+        context: Context,
         dialogWindowInterface: DialogWindowInterface
     ): AlertDialog {
-        val builder = AlertDialog.Builder(mainActivity)
-        builder.setMessage(mainActivity.getString(R.string.rating_prompt))
+        val builder = AlertDialog.Builder(context)
+        builder.setMessage(context.getString(R.string.rating_prompt))
             .setPositiveButton(
                 R.string.yes_string
             ) { _, _ ->
                 dialogWindowInterface.onPositiveButton()
             }
-            .setNegativeButton(mainActivity.getString(R.string.not_now_string)) { _, _ ->
+            .setNegativeButton(context.getString(R.string.not_now_string)) { _, _ ->
             }
 
         return builder.create()
@@ -107,9 +107,9 @@ object DialogsCreatorObject {
 
     suspend fun getTrialStartDialog(
         context: Context,
-        dialogWindowInterface: DialogWindowInterface
+        dialogWindowInterface: DialogWindowInterface,
+        preferencesDataStore: PreferencesDataStore
     ): AlertDialog {
-        var preferencesDataStore = PreferencesDataStore.getInstance(context)
         val alertDialogBuilder = AlertDialog.Builder(context)
         alertDialogBuilder.setMessage(
             "${context.resources.getString(R.string.trial_prompt_segment_1)} ${preferencesDataStore.numberVideosTimingFree} ${

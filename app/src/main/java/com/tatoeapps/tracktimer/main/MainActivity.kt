@@ -11,6 +11,7 @@ import android.transition.Transition
 import android.transition.TransitionManager
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -42,20 +43,21 @@ import com.tatoeapps.tracktimer.utils.Utils.getHorizontalFragmentTransition
 import com.tatoeapps.tracktimer.utils.Utils.getNoAnimationTransition
 import com.tatoeapps.tracktimer.utils.Utils.getVerticalFragmentTransition
 import com.tatoeapps.tracktimer.viewmodel.MainViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.exo_player_control_view.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity(),
     LifecycleOwner,
     ActionButtonsInterface,
     SpeedSliderInterface,
     GuideInterface {
 
-    lateinit var mainViewModel: MainViewModel
-    lateinit var mainActivity: MainActivity
+
+    private val mainViewModel: MainViewModel by viewModels() //this is injected
 
     private var alertDialog: AlertDialog? = null
 
@@ -68,15 +70,8 @@ class MainActivity : AppCompatActivity(),
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
-        mainActivity=this
-
-        mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
-        //change this next line when DI - Dagger Hilt
-        mainViewModel.initPDS(this)
-
         mainViewModel.startBillingClientLifecycle(application, this, lifecycle)
 
-        //todo make this better
         if (PreferencesDataStore.isUserFirstTimer(this)) {
             startActivity(Intent(this, OnBoardingActivity::class.java))
         } else {
@@ -116,6 +111,7 @@ class MainActivity : AppCompatActivity(),
      */
 
     private fun askUserIfWantToRateApp() {
+        val mainActivity=this
         lifecycleScope.launch {
             mainViewModel.askUserIfWantToRateApp(mainActivity)
         }

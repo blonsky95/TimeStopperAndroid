@@ -1,9 +1,9 @@
 <component name="libraryTable">
   <library name="Gradle: net.butterflytv.utils:rtmp-client:3.1.0@aar">
     <CLASSES>
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/2a330bd0829ddc685b45bf0acfce750b/jetified-rtmp-client-3.1.0/AndroidManifest.xml" />
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/2a330bd0829ddc685b45bf0acfce750b/jetified-rtmp-client-3.1.0/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/2a330bd0829ddc685b45bf0acfce750b/jetified-rtmp-client-3.1.0/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/1422cff6f550363ff554e9d9615b9634/jetified-rtmp-client-3.1.0/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/1422cff6f550363ff554e9d9615b9634/jetified-rtmp-client-3.1.0/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/1422cff6f550363ff554e9d9615b9634/jetified-rtmp-client-3.1.0/res" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.butterflytv.utils/rtmp-client/3.1.0/dd74cde20318e1434d90f031a725eca0fa48db4f/rtmp-client-3.1.0-javadoc.jar!/" />

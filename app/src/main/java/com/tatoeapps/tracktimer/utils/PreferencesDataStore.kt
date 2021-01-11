@@ -7,31 +7,36 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesKey
 import androidx.datastore.preferences.createDataStore
 import com.tatoeapps.tracktimer.R
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import java.util.*
+import javax.inject.Inject
 
 /**
  * FIND EVERYTHING RELATED TO PREFERENCES HERE
  */
 
-class PreferencesDataStore (context: Context) {
+class PreferencesDataStore  (context: Context) {
 
     companion object {
+        /**
+         * Singleton "instantiation" wouldnt be needed if I use DI (dagger hilt) to inject it
+         */
         //Volatile means that writes to this field are immediately made visible to other threads
         // - hence if there is already an instance in other thread, it would use that one
-        @Volatile private var INSTANCE:PreferencesDataStore? = null
-
-
-        //Synchronized makes sure the code inside the block cant be run from two multiple threads at the same time
-        //its like a room is the code, and each time a thread accesses it, it locks the room behind it,
-        // so until it finishes its job in the room, no other thread can access
-        fun getInstance(context: Context): PreferencesDataStore =
-            INSTANCE ?: synchronized(this) {
-                INSTANCE ?: createClassInstance(context).also { INSTANCE = it }
-            }
-
-        private fun createClassInstance(context: Context) =
-            PreferencesDataStore(context)
+//        @Volatile private var INSTANCE:PreferencesDataStore? = null
+//
+//
+//        //Synchronized makes sure the code inside the block cant be run from two multiple threads at the same time
+//        //its like a room is the code, and each time a thread accesses it, it locks the room behind it,
+//        // so until it finishes its job in the room, no other thread can access
+//        fun getInstance(context: Context): PreferencesDataStore =
+//            INSTANCE ?: synchronized(this) {
+//                INSTANCE ?: createClassInstance(context).also { INSTANCE = it }
+//            }
+//
+//        private fun createClassInstance(context: Context) =
+//            PreferencesDataStore(context)
 
 
         //the following 2 functions still rely on shared prefernces instead of DataStore because
@@ -69,13 +74,13 @@ class PreferencesDataStore (context: Context) {
     private val MILLIS_IN_ONE_DAY = 86400000
    val numberVideosTimingFree = 1
 
-    val PREF_HAS_REVIEWED = preferencesKey<Boolean>("preference_has_reviewed")
-    val PREF_IS_SUBSCRIBED = preferencesKey<Boolean>("preference_is_subscribed")
-    val PREF_IS_TIMING_FREE_ACTIVE = preferencesKey<Boolean>("preference_is_timing_free_active")
-    val PREF_IS_USER_FIRST_TIME = preferencesKey<Boolean>("preference_is_user_first_time")
-    val PREF_DATE_RATING_PROMPT = preferencesKey<Long>("preference_date_rating_prompt")
-    val PREF_DOY_LAST_TRIAL = preferencesKey<Int>("preference_doy_last_trial")
-    val PREF_COUNT_FREE_TIMING_VIDEOS = preferencesKey<Int>("preference_count_free_timing_videos")
+    private val PREF_HAS_REVIEWED = preferencesKey<Boolean>("preference_has_reviewed")
+    private val PREF_IS_SUBSCRIBED = preferencesKey<Boolean>("preference_is_subscribed")
+    private val PREF_IS_TIMING_FREE_ACTIVE = preferencesKey<Boolean>("preference_is_timing_free_active")
+    private val PREF_IS_USER_FIRST_TIME = preferencesKey<Boolean>("preference_is_user_first_time")
+    private val PREF_DATE_RATING_PROMPT = preferencesKey<Long>("preference_date_rating_prompt")
+    private val PREF_DOY_LAST_TRIAL = preferencesKey<Int>("preference_doy_last_trial")
+    private val PREF_COUNT_FREE_TIMING_VIDEOS = preferencesKey<Int>("preference_count_free_timing_videos")
 
     suspend fun shouldShowRatingPrompt(currentSystemTimeInMillis: Long): Boolean {
         if (hasUserReviewedApp()) {
@@ -103,7 +108,7 @@ class PreferencesDataStore (context: Context) {
         }
     }
 
-    suspend fun hasUserReviewedApp(): Boolean {
+    private suspend fun hasUserReviewedApp(): Boolean {
         val userReviewedBooleanPreference = dataStore.data.first()
         return userReviewedBooleanPreference[PREF_HAS_REVIEWED]?:false
     }

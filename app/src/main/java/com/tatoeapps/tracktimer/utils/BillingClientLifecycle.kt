@@ -4,9 +4,11 @@ import android.app.Application
 import androidx.lifecycle.*
 import com.android.billingclient.api.*
 import com.tatoeapps.tracktimer.main.MainActivity
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * This class handles all the billing stuff, most of it is standard.
@@ -27,15 +29,15 @@ import timber.log.Timber
  * Here comes variable mCheckingSubscriptionState - if true - its just a check - and no live data will
  * be updated - but the value of subscribed in shared prefs will
  **/
+
 class BillingClientLifecycle(
     val app: Application,
     private val mainActivity: MainActivity,
+    private val preferencesDataStore: PreferencesDataStore,
     lifecycle: Lifecycle
 
 ) : LifecycleObserver, PurchasesUpdatedListener, BillingClientStateListener,
     SkuDetailsResponseListener {
-
-    var preferencesDataStore: PreferencesDataStore = PreferencesDataStore.getInstance(mainActivity)
 
     //is a singleton - but we dont want it to be an object because it has lifecycle related behaviour
     companion object {
@@ -48,10 +50,11 @@ class BillingClientLifecycle(
         fun getInstance(
             app: Application,
             mainActivity: MainActivity,
+            preferencesDataStore: PreferencesDataStore,
             lifecycle: Lifecycle
         ): BillingClientLifecycle =
             INSTANCE ?: synchronized(this) {
-                INSTANCE ?: BillingClientLifecycle(app, mainActivity, lifecycle).also {
+                INSTANCE ?: BillingClientLifecycle(app, mainActivity, preferencesDataStore, lifecycle).also {
                     INSTANCE = it
                 }
             }
