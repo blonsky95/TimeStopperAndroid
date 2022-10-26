@@ -1,6 +1,6 @@
 include ':app'
 rootProject.name = "TrackTimer"
 
-gradle.ext.exoplayerRoot = 'D:\\Apps_projects\\ExoPlayer'
-gradle.ext.exoplayerModulePrefix = 'exoplayer-'
-apply from: new File(gradle.ext.exoplayerRoot, 'core_settings.gradle')
+//gradle.ext.exoplayerRoot = '/Users/pablotrescoligarcia/AndroidStudioProjects/ExoPlayer'
+//gradle.ext.exoplayerModulePrefix = 'exoplayer-'
+//apply from: new File(gradle.ext.exoplayerRoot, 'core_settings.gradle')
