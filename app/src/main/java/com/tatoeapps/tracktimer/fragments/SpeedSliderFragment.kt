@@ -7,10 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.google.android.material.slider.Slider
-import com.tatoeapps.tracktimer.R
+import com.tatoeapps.tracktimer.databinding.FragmentSpeedBtnsBinding
 import com.tatoeapps.tracktimer.interfaces.SpeedSliderInterface
-import kotlinx.android.synthetic.main.fragment_speed_btns.*
-import kotlinx.android.synthetic.main.fragment_speed_btns.view.*
 
 class SpeedSliderFragment : Fragment() {
 
@@ -21,19 +19,28 @@ class SpeedSliderFragment : Fragment() {
         const val defaultSpeedFactor = 1.0f
     }
 
+    private var _binding: FragmentSpeedBtnsBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var speedSliderInterface: SpeedSliderInterface
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_speed_btns, container, false)
+    ): View {
+        _binding = FragmentSpeedBtnsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        view.speed_slider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+        binding.speedSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started
             }
@@ -44,23 +51,23 @@ class SpeedSliderFragment : Fragment() {
             }
         })
 
-        view.speed_slider.addOnChangeListener { slider, _, _ -> updateSpeedDisplay((slider.value / 100).toString()) }
+        binding.speedSlider.addOnChangeListener { slider, _, _ -> updateSpeedDisplay((slider.value / 100).toString()) }
 
-        view.add_speed_btn.setOnClickListener {
-            if (speed_slider.value < maxSpeedValue) {
-                val newSpeed = speed_slider.value + intervalValue
-                speed_slider.value = newSpeed
+        binding.addSpeedBtn.setOnClickListener {
+            if (binding.speedSlider.value < maxSpeedValue) {
+                val newSpeed = binding.speedSlider.value + intervalValue
+                binding.speedSlider.value = newSpeed
                 val speedString = (newSpeed / 100).toString()
-                speed_value_display.text = speedString
+                binding.speedValueDisplay.text = speedString
                 speedSliderInterface.setSpeed(newSpeed)
             }
         }
-        view.minus_speed_btn.setOnClickListener {
-            if (speed_slider.value > minSpeedValue) {
-                val newSpeed = speed_slider.value - intervalValue
-                speed_slider.value = newSpeed
+        binding.minusSpeedBtn.setOnClickListener {
+            if (binding.speedSlider.value > minSpeedValue) {
+                val newSpeed = binding.speedSlider.value - intervalValue
+                binding.speedSlider.value = newSpeed
                 val speedString = (newSpeed / 100).toString()
-                speed_value_display.text = speedString
+                binding.speedValueDisplay.text = speedString
                 speedSliderInterface.setSpeed(newSpeed)
             }
         }
@@ -74,12 +81,12 @@ class SpeedSliderFragment : Fragment() {
     }
 
     fun updateSpeedDisplay(newSpeed: String) {
-        speed_value_display.text = newSpeed
+        binding.speedValueDisplay.text = newSpeed
     }
 
     fun resetSpeed() {
         speedSliderInterface.setSpeed(defaultSpeedFactor * 100)
-        speed_slider.value = defaultSpeedFactor * 100
-        speed_value_display.text = defaultSpeedFactor.toString()
+        binding.speedSlider.value = defaultSpeedFactor * 100
+        binding.speedValueDisplay.text = defaultSpeedFactor.toString()
     }
 }

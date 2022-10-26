@@ -6,43 +6,51 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.tatoeapps.tracktimer.databinding.FragmentActionBtnsBinding
 import com.tatoeapps.tracktimer.interfaces.ActionButtonsInterface
-import com.tatoeapps.tracktimer.R
-import kotlinx.android.synthetic.main.fragment_action_btns.view.*
 
 class ActionButtonsFragment : Fragment() {
 
     private lateinit var actionButtonsInterface: ActionButtonsInterface
 
+    private var _binding: FragmentActionBtnsBinding? = null
+    private val binding get() = _binding!!
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return  inflater.inflate(R.layout.fragment_action_btns, container, false)
+    ): View {
+        _binding = FragmentActionBtnsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        view.addVideo_btn.setOnClickListener {
+        binding.addVideoBtn.setOnClickListener {
             actionButtonsInterface.importVideo()
         }
-        view.start_btn.setOnClickListener {
+        binding.startBtn.setOnClickListener {
             actionButtonsInterface.startTimingFeature()
         }
-        view.lap_btn.setOnClickListener {
+        binding.lapBtn.setOnClickListener {
             actionButtonsInterface.lapTiming()
         }
-        view.stop_btn.setOnClickListener {
+        binding.stopBtn.setOnClickListener {
             actionButtonsInterface.stopTiming()
         }
-        view.clear_btn.setOnClickListener {
+        binding.clearBtn.setOnClickListener {
             actionButtonsInterface.clearTiming()
         }
-        view.get_help_btn.setOnClickListener {
+        binding.getHelpBtn.setOnClickListener {
             actionButtonsInterface.helpButtonPressed()
         }
-        view.sub_btn.setOnClickListener {
+        binding.subBtn.setOnClickListener {
             actionButtonsInterface.subPressed()
         }
 

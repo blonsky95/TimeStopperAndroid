@@ -9,10 +9,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
-import com.tatoeapps.tracktimer.R
+import com.tatoeapps.tracktimer.databinding.FragmentGuideBinding
 import com.tatoeapps.tracktimer.interfaces.GuideInterface
-import kotlinx.android.synthetic.main.fragment_guide.*
-import kotlinx.android.synthetic.main.fragment_guide.view.*
 
 class GuideFragment : Fragment() {
 
@@ -20,25 +18,34 @@ class GuideFragment : Fragment() {
     private lateinit var youtubePlayerViewOne: YouTubePlayerView
     private lateinit var youtubePlayerViewTwo: YouTubePlayerView
 
+    private var _binding: FragmentGuideBinding? = null
+    private val binding get() = _binding!!
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_guide, container, false)
+    ): View {
+        _binding = FragmentGuideBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        view.return_button.setOnClickListener {
+        binding.returnButton.setOnClickListener {
             guideInterface.hideGuideFragment()
         }
 
-        youtubePlayerViewOne = youtube_player_view_1
+        youtubePlayerViewOne = binding.youtubePlayerView1
         lifecycle.addObserver(youtubePlayerViewOne)
 
-        youtubePlayerViewTwo = youtube_player_view_2
+        youtubePlayerViewTwo = binding.youtubePlayerView2
         lifecycle.addObserver(youtubePlayerViewTwo)
 
     }
@@ -61,17 +68,17 @@ class GuideFragment : Fragment() {
 
     private fun updateLayoutIfOrientation(orientation: Int) {
         if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            title_guide.visibility = View.GONE
-            return_button.visibility = View.GONE
-            youtube_player_view_1.setMargins(left = 96F, right = 96F)
-            youtube_player_view_2.setMargins(left = 96F, right = 96F)
+            binding.titleGuide.visibility = View.GONE
+            binding.returnButton.visibility = View.GONE
+            binding.youtubePlayerView2.setMargins(left = 96F, right = 96F)
+            binding.youtubePlayerView1.setMargins(left = 96F, right = 96F)
         } else {
-            title_guide.visibility = View.VISIBLE
-            return_button.visibility = View.VISIBLE
+            binding.titleGuide.visibility = View.VISIBLE
+            binding.returnButton.visibility = View.VISIBLE
 //            val params = youtube_player_view_1.layoutParams as ViewGroup.MarginLayoutParams
 //            params.setMargins(youtube_player_view_1.dpToPx(48F),youtube_player_view_1.dpToPx(48F),youtube_player_view_1.dpToPx(48F),youtube_player_view_1.dpToPx(48F))
-            youtube_player_view_1.setMargins(left = 12F, right = 12F)
-            youtube_player_view_2.setMargins(left = 12F, right = 12F)
+            binding.youtubePlayerView1.setMargins(left = 12F, right = 12F)
+            binding.youtubePlayerView2.setMargins(left = 12F, right = 12F)
         }
     }
 

@@ -36,6 +36,8 @@ import com.tatoeapps.tracktimer.BuildConfig
 import com.tatoeapps.tracktimer.R
 import com.tatoeapps.tracktimer.R.id
 import com.tatoeapps.tracktimer.R.layout
+import com.tatoeapps.tracktimer.databinding.ActivityMainBinding
+import com.tatoeapps.tracktimer.databinding.ExoPlayerControlViewBinding
 import com.tatoeapps.tracktimer.fragments.ActionButtonsFragment
 import com.tatoeapps.tracktimer.fragments.GuideFragment
 import com.tatoeapps.tracktimer.fragments.SpeedSliderFragment
@@ -49,8 +51,6 @@ import com.tatoeapps.tracktimer.utils.DialogsCreatorObject
 import com.tatoeapps.tracktimer.utils.TimeSplitsController
 import com.tatoeapps.tracktimer.utils.Utils
 import com.tatoeapps.tracktimer.viewmodel.MainViewModel
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.exo_player_control_view.*
 import timber.log.Timber
 import java.util.*
 
@@ -87,6 +87,9 @@ class MainActivity : AppCompatActivity(),
 
     private var timeSplitsController: TimeSplitsController? = null
 
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var exoPlayerControlsBinding: ExoPlayerControlViewBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -99,12 +102,12 @@ class MainActivity : AppCompatActivity(),
 
         mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
-        if (Utils.isUserFirstTimer(this)) {
-//            isOnboardingOn = true
-            startActivity(Intent(this, OnBoardingActivity::class.java))
-        } else {
-//            isOnboardingOn = false
-            setContentView(layout.activity_main)
+//        if (Utils.isUserFirstTimer(this)) {
+//            startActivity(Intent(this, OnBoardingActivity::class.java))
+//        } else {
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            exoPlayerControlsBinding = ExoPlayerControlViewBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
             checkPermissions()
             setUpSystemUiVisibilityListener()
@@ -126,8 +129,8 @@ class MainActivity : AppCompatActivity(),
                 }
             }
 
-            promptAppRatingToUser()
-        }
+//            promptAppRatingToUser()
+//        }
     }
 
     override fun onResume() {
@@ -526,8 +529,8 @@ class MainActivity : AppCompatActivity(),
     private fun setUpPlayer() {
 
         exoPlayer = Utils.getExoPlayerInstance(this)
-        val playerControls = player_controls
-        val surface = surface_view
+        val playerControls = binding.playerControls
+        val surface = binding.surfaceView
 
 
         exoPlayer!!.addVideoListener(object : VideoListener {
@@ -567,10 +570,10 @@ class MainActivity : AppCompatActivity(),
         //reset Speed -> Speed slider frag
         (supportFragmentManager.findFragmentById(id.speedSlider_frag) as SpeedSliderFragment).resetSpeed()
 
-        custom_forward.setOnClickListener {
+        exoPlayerControlsBinding.customForward.setOnClickListener {
             exoPlayer!!.seekTo(exoPlayer!!.currentPosition + (videoSkipDefaultMs * speedFactor).toLong())
         }
-        custom_rewind.setOnClickListener {
+        exoPlayerControlsBinding.customRewind.setOnClickListener {
             val rewindPosition =
                 if (exoPlayer!!.currentPosition - (videoSkipDefaultMs * speedFactor) < 0) {
                     0L
@@ -580,7 +583,7 @@ class MainActivity : AppCompatActivity(),
             exoPlayer!!.seekTo(rewindPosition)
         }
 
-        next_frame_btn.setOnClickListener {
+        exoPlayerControlsBinding.nextFrameBtn.setOnClickListener {
             if (!isPlayingVideo) {
                 //if first next frame skip is true, it needs frame correcting - see issue #18
                 val newPosition = Utils.getPositionOfNextFrame(
@@ -592,7 +595,7 @@ class MainActivity : AppCompatActivity(),
                 exoPlayer!!.seekTo(newPosition)
             }
         }
-        previous_frame_btn.setOnClickListener {
+        exoPlayerControlsBinding.previousFrameBtn.setOnClickListener {
             if (!isPlayingVideo) {
                 exoPlayer!!.seekTo(
                     Utils.getPositionOfPreviousFrame(
@@ -656,12 +659,12 @@ class MainActivity : AppCompatActivity(),
 
     private fun updateLapsText(newText: String, isReset: Boolean) {
         if (isReset) {
-            timing_display.text = newText
+            binding.timingDisplay.text = newText
             return
         } else {
-            var timePointsDisplayText = timing_display.text.toString()
+            var timePointsDisplayText = binding.timingDisplay.text.toString()
             timePointsDisplayText += newText
-            timing_display.text = timePointsDisplayText
+            binding.timingDisplay.text = timePointsDisplayText
         }
     }
 
@@ -683,24 +686,24 @@ class MainActivity : AppCompatActivity(),
 
     private fun toggleTimingContainerVisibility(isVisible: Boolean) {
         if (isVisible) {
-            info_container.visibility = View.VISIBLE
+            binding.infoContainer.visibility = View.VISIBLE
         } else {
-            info_container.visibility = View.GONE
+            binding.infoContainer.visibility = View.GONE
         }
     }
 
     private fun setUserScreenTapListener() {
         mDetector = GestureDetectorCompat(this, MyGestureListener())
-        surface_view.setOnTouchListener { _, p1 -> mDetector.onTouchEvent(p1) }
-        surface_view.setMaxZoom(5f)
-        Timber.d("GESTURE - max zoom: ${surface_view.getMaxZoom()}")
+        binding.surfaceView.setOnTouchListener { _, p1 -> mDetector.onTouchEvent(p1) }
+        binding.surfaceView.setMaxZoom(5f)
+        Timber.d("GESTURE - max zoom: ${binding.surfaceView.getMaxZoom()}")
     }
 
     private fun showActionFragments(show: Boolean) {
         if (show) {
-            player_controls.show()
+            binding.playerControls.show()
         } else {
-            player_controls.hide()
+            binding.playerControls.hide()
         }
         toggleFragmentsVisibility(
             show,
@@ -712,7 +715,7 @@ class MainActivity : AppCompatActivity(),
         )
 
         if (timeSplitsController != null && !timeSplitsController!!.isCleared) {
-            toggleInfoDisplay(info_container, show)
+            toggleInfoDisplay(binding.infoContainer, show)
         }
     }
 
@@ -720,7 +723,7 @@ class MainActivity : AppCompatActivity(),
         val transition: Transition = Slide(Gravity.START)
         transition.duration = 200
         transition.addTarget(view)
-        TransitionManager.beginDelayedTransition(parent_container, transition)
+        TransitionManager.beginDelayedTransition(binding.parentContainer, transition)
         view.visibility = if (show) View.VISIBLE else View.GONE
     }
 
@@ -760,7 +763,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun hideBuffering() {
         val timeBar: DefaultTimeBar =
-            player_controls.findViewById<View>(id.exo_progress) as DefaultTimeBar
+            binding.playerControls.findViewById<View>(id.exo_progress) as DefaultTimeBar
         timeBar.setBufferedColor(0x33FFFFFF)
     }
 
@@ -820,6 +823,7 @@ class MainActivity : AppCompatActivity(),
         requestCode: Int,
         permissions: Array<String>, grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             PERMISSION_REQUEST_CODE -> {
                 hasPermissions =
@@ -835,7 +839,7 @@ class MainActivity : AppCompatActivity(),
 
     inner class MyGestureListener : GestureDetector.SimpleOnGestureListener() {
 
-        override fun onSingleTapUp(e: MotionEvent?): Boolean {
+        override fun onSingleTapUp(e: MotionEvent): Boolean {
             Timber.d("GESTURE - se ha tocado una vez: ")
             val show =
                 (supportFragmentManager.findFragmentById(id.actionBtns_frag) as ActionButtonsFragment).isHidden

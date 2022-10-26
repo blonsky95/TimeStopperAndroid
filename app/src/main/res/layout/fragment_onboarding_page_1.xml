@@ -70,13 +70,13 @@
                     android:textColor="@color/exo_white" />
             </LinearLayout>
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginEnd="24dp"
-                android:src="@drawable/vallas_new_1" />
+<!--            <ImageView-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="200dp"-->
+<!--                android:layout_marginStart="24dp"-->
+<!--                android:layout_marginTop="12dp"-->
+<!--                android:layout_marginEnd="24dp"-->
+<!--                android:src="@drawable/vallas_new_1" />-->
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -120,13 +120,13 @@
                     android:textColor="@color/exo_white" />
             </LinearLayout>
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginEnd="24dp"
-                android:src="@drawable/vallas_new_zoom" />
+<!--            <ImageView-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="200dp"-->
+<!--                android:layout_marginStart="24dp"-->
+<!--                android:layout_marginTop="12dp"-->
+<!--                android:layout_marginEnd="24dp"-->
+<!--                android:src="@drawable/vallas_new_zoom" />-->
 
         </LinearLayout>
 
