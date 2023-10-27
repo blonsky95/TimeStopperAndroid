@@ -20,9 +20,9 @@ android {
     defaultConfig {
         applicationId "com.tatoeapps.timestopper"
         minSdkVersion 23
-        targetSdkVersion 32
-        versionCode 8
-        versionName "1.1.0"
+        targetSdkVersion 33
+        versionCode 9
+        versionName "1.2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
