@@ -105,29 +105,29 @@ class MainActivity : AppCompatActivity(),
 //        if (Utils.isUserFirstTimer(this)) {
 //            startActivity(Intent(this, OnBoardingActivity::class.java))
 //        } else {
-            binding = ActivityMainBinding.inflate(layoutInflater)
-            exoPlayerControlsBinding = ExoPlayerControlViewBinding.inflate(layoutInflater)
-            setContentView(binding.root)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        exoPlayerControlsBinding = ExoPlayerControlViewBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-            checkPermissions()
-            setUpSystemUiVisibilityListener()
+        checkPermissions()
+        setUpSystemUiVisibilityListener()
 
-            supportFragmentManager.beginTransaction()
-                .hide(supportFragmentManager.findFragmentById(id.guide_frag) as GuideFragment)
-                .commit()
+        supportFragmentManager.beginTransaction()
+            .hide(supportFragmentManager.findFragmentById(id.guide_frag) as GuideFragment)
+            .commit()
 
-            setUpPlayer()
-            hideBuffering()
-            setUserScreenTapListener()
-            addObservers()
+        setUpPlayer()
+        hideBuffering()
+        setUserScreenTapListener()
+        addObservers()
 
-            if (savedInstanceState == null) {
-                if (intent?.action != Intent.ACTION_VIEW) {
-                    getStartFragment()
-                } else {
-                    loadVideoFromImplicitIntent(intent.data)
-                }
+        if (savedInstanceState == null) {
+            if (intent?.action != Intent.ACTION_VIEW) {
+                getStartFragment()
+            } else {
+                loadVideoFromImplicitIntent(intent.data)
             }
+        }
 
 //            promptAppRatingToUser()
 //        }
@@ -137,7 +137,7 @@ class MainActivity : AppCompatActivity(),
         setUpFullScreen()
         //check if screen is black so first check if start fragment isn't visible + exoplayer is instanced (not onboarding) + exo has a media item (not on start fragment)
         if (hasMediaLoaded && exoPlayer?.currentMediaItem == null) {
-            Toast.makeText(this,"IS THERE BLACK SCREEN?", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "IS THERE BLACK SCREEN?", Toast.LENGTH_SHORT).show()
         }
         super.onResume()
     }
@@ -157,7 +157,8 @@ class MainActivity : AppCompatActivity(),
                     }
                 }
 
-            val suggestRateAppDialog = DialogsCreatorObject.getRatingPromptDialog(this, dialogWindowInterface)
+            val suggestRateAppDialog =
+                DialogsCreatorObject.getRatingPromptDialog(this, dialogWindowInterface)
             suggestRateAppDialog.setCancelable(true)
             suggestRateAppDialog.show()
         }
@@ -171,10 +172,11 @@ class MainActivity : AppCompatActivity(),
                 val reviewInfo = reviewRequest.result
                 val flow = manager.launchReviewFlow(this, reviewInfo)
                 flow.addOnCompleteListener { _ ->
-                    Utils.updateHasUserReviewedApp(this,true)
+                    Utils.updateHasUserReviewedApp(this, true)
                 }
             }
-        }    }
+        }
+    }
 
     /**
      * From implicit intent
@@ -183,7 +185,7 @@ class MainActivity : AppCompatActivity(),
     private fun loadVideoFromImplicitIntent(data: Uri?) {
         updateFreeTrialInfo()
         timeSplitsController = TimeSplitsController()
-        hasMediaLoaded=true
+        hasMediaLoaded = true
 
         toggleTimingContainerVisibility(false)
         prepareVideoSource(MediaItem.fromUri(data!!))
@@ -476,7 +478,7 @@ class MainActivity : AppCompatActivity(),
             prepareVideoSource(MediaItem.fromUri(data!!.data!!))
             configureExoPlayerButtons(data.data!!)
             //todo do this with observers - check when result is ok and then trigger all this - ARCHITECHTURE
-            hasMediaLoaded=true
+            hasMediaLoaded = true
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
@@ -508,11 +510,14 @@ class MainActivity : AppCompatActivity(),
                         firstNextFrameSkip = true
                     }
                 }
+
                 Player.STATE_ENDED -> {
                     showActionFragments(true)
                 }
+
                 Player.STATE_BUFFERING -> {
                 }
+
                 Player.STATE_IDLE -> {
                 }
             }
@@ -628,7 +633,10 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onBackPressed() {
-        if (intent?.action == Intent.ACTION_VIEW || areFragmentsInBackstack() || supportFragmentManager.findFragmentById(id.start_fragment_container)!!.isVisible) {
+        if (intent?.action == Intent.ACTION_VIEW || areFragmentsInBackstack() || supportFragmentManager.findFragmentById(
+                id.start_fragment_container
+            )!!.isVisible
+        ) {
             super.onBackPressed()
         } else {
             val dialogBuilder = AlertDialog.Builder(this)
@@ -637,7 +645,7 @@ class MainActivity : AppCompatActivity(),
                     "Yes"
                 ) { _, _ ->
                     exoPlayer?.playWhenReady = false
-                    hasMediaLoaded=false
+                    hasMediaLoaded = false
                     toggleFragmentsVisibility(
                         true,
                         supportFragmentManager.findFragmentById(id.start_fragment_container) as StartFragment
@@ -798,20 +806,37 @@ class MainActivity : AppCompatActivity(),
      */
 
     private fun checkPermissions() {
+        val permissions =
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                arrayOf(
+                    Manifest.permission.READ_MEDIA_VIDEO,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.WAKE_LOCK,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                )
+            } else {
+                arrayOf(
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.WAKE_LOCK,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                )
+            }
+        val selfPermission =
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.READ_MEDIA_VIDEO
+            } else {
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            }
         if (ContextCompat.checkSelfPermission(
                 this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                selfPermission,
             )
             != PackageManager.PERMISSION_GRANTED
         ) {
             // Permission is not granted
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.WAKE_LOCK,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ),
+                permissions,
                 PERMISSION_REQUEST_CODE
             )
         } else {
