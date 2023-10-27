@@ -127,6 +127,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             app:played_color="@color/colorPrimaryDark"
+          app:buffered_color="@color/white_20"
             app:scrubber_drawable="@drawable/ic_video_slider_scrubber"
             android:layout_height="26dp"/>
 
