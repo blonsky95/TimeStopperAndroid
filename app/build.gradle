@@ -57,7 +57,10 @@ dependencies {
     implementation 'com.pierfrancescosoffritti.androidyoutubeplayer:core:10.0.5'
     implementation 'com.otaliastudios:zoomlayout:1.8.0'
 
-    implementation 'com.android.billingclient:billing-ktx:4.0.0'
+    //TODO -> To upgrade billing to 6.0.0 you have to change the catalog product in console to new system -> then do migration
+    //https://developer.android.com/google/play/billing/migrate-gpblv6#5-or-6
+
+    implementation 'com.android.billingclient:billing-ktx:5.0.0'
     implementation 'com.google.android.material:material:1.11.0-beta01'
 //    implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
     implementation 'com.google.android.exoplayer:exoplayer:2.12.0'
