@@ -221,8 +221,8 @@ class BillingClientLifecycle(
     Timber.d("queryPurchases: SUBS")
     lifecycle.coroutineScope.launch(Dispatchers.Main) {
       val result = billingClient.queryPurchasesAsync(BillingClient.SkuType.SUBS)
-      if (result.purchasesList != null && result.purchasesList!!.isNotEmpty()) {
-        for (purchase in result.purchasesList!!) {
+      if (result.purchasesList.isNotEmpty()) {
+        for (purchase in result.purchasesList) {
           handlePurchase(purchase)
         }
       } else {
